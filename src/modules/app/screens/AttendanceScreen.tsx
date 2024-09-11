@@ -11,7 +11,7 @@ import { shadows } from "@src/styles";
 import { spacing } from "@styles/spacing";
 import { ITheme } from "@styles/theme";
 import React, { useCallback, useMemo, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -24,12 +24,16 @@ import {
 } from "../components/index";
 import { formatDate, groupBy } from "../utils/index";
 import { useAppSelector } from "@src/store";
+import TitleAndMonths, {
+  getSchoolMonthIndex,
+} from "@modules/app/components/TitleAndMonths";
 
 const AttendanceScreen: React.FC = () => {
   const user = useAppSelector((s) => s?.AppReducer?.user);
   const themedStyles = useThemedStyles<typeof styles>(styles);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-
+  const [selectedMonth, setSelectedMonth] = useState(
+    getSchoolMonthIndex(new Date())
+  );
   const { getAttendances } = useAttendance();
 
   const fetchAttendances = useCallback(async () => {
@@ -92,43 +96,10 @@ const AttendanceScreen: React.FC = () => {
     }));
   }, [attendances]);
 
-  const renderHeader = () => (
-    <View style={themedStyles.header}>
-      <CsText style={themedStyles.headerTitle}>Ponctualité</CsText>
-      <View style={themedStyles.monthsContainer}>
-        {[
-          "JAN",
-          "FEV",
-          "MAR",
-          "AVR",
-          "MAI",
-          "JUN",
-          "SEP",
-          "OCT",
-          "NOV",
-          "DEC",
-        ].map((month, index) => (
-          <TouchableOpacity
-            key={month}
-            style={[
-              themedStyles.monthButton,
-              selectedMonth === index && themedStyles.selectedMonthButton,
-            ]}
-            onPress={() => setSelectedMonth(index)}
-          >
-            <CsText
-              style={StyleSheet.flatten([
-                themedStyles.monthButtonText,
-                selectedMonth === index && themedStyles.selectedMonthButtonText,
-              ])}
-            >
-              {month}
-            </CsText>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+  const handleMonthChange = (month: number) => {
+    setSelectedMonth(month);
+    // Fetch homework data for the selected month
+  };
 
   const renderAttendanceItem = useCallback(
     ({ item }: { item: IAttendanceDTO }) => (
@@ -143,7 +114,11 @@ const AttendanceScreen: React.FC = () => {
 
   return (
     <View style={themedStyles.container}>
-      {renderHeader()}
+      <TitleAndMonths
+        title="Ponctualité"
+        defaultSelectedMonth={selectedMonth}
+        onMonthChange={handleMonthChange}
+      />
       <AnimatedFlatList
         style={themedStyles.attendanceList}
         data={groupedAttendances}

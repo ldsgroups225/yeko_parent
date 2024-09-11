@@ -9,7 +9,7 @@ import { borderRadius, shadows } from "@styles/index";
 import { spacing } from "@styles/spacing";
 import { ITheme } from "@styles/theme";
 import React, { useCallback, useMemo, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -22,19 +22,7 @@ import {
 } from "../components/index";
 import { formatDate, groupBy } from "../utils/index";
 import { useAppSelector } from "@src/store";
-
-const SCHOOL_MONTHS = [
-  "SEP",
-  "OCT",
-  "NOV",
-  "DEC",
-  "JAN",
-  "FEV",
-  "MAR",
-  "AVR",
-  "MAI",
-  "JUN",
-];
+import TitleAndMonths from "@modules/app/components/TitleAndMonths";
 
 const getSchoolMonthIndex = (date: Date): number => {
   const month = date.getMonth();
@@ -80,6 +68,11 @@ const HomeworkScreen: React.FC = () => {
     };
   }, [homeworks]);
 
+  const handleMonthChange = (month: number) => {
+    setSelectedMonth(month);
+    // Fetch homework data for the selected month
+  };
+
   const summaryItems = [
     {
       label: "Total des devoirs",
@@ -105,33 +98,6 @@ const HomeworkScreen: React.FC = () => {
       data: items,
     }));
   }, [homeworks]);
-
-  const renderHeader = () => (
-    <View style={themedStyles.header}>
-      <CsText style={themedStyles.headerTitle}>Devoirs</CsText>
-      <View style={themedStyles.monthsContainer}>
-        {SCHOOL_MONTHS.map((month, index) => (
-          <TouchableOpacity
-            key={month}
-            style={[
-              themedStyles.monthButton,
-              selectedMonth === index && themedStyles.selectedMonthButton,
-            ]}
-            onPress={() => setSelectedMonth(index)}
-          >
-            <CsText
-              style={StyleSheet.flatten([
-                themedStyles.monthButtonText,
-                selectedMonth === index && themedStyles.selectedMonthButtonText,
-              ])}
-            >
-              {month}
-            </CsText>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
 
   const renderHomeworkItem = useCallback(
     ({ item }: { item: IHomeworkDTO }) => <HomeworkItem homework={item} />,
@@ -159,7 +125,11 @@ const HomeworkScreen: React.FC = () => {
 
   return (
     <View style={themedStyles.container}>
-      {renderHeader()}
+      <TitleAndMonths
+        title="Devoirs"
+        defaultSelectedMonth={selectedMonth}
+        onMonthChange={handleMonthChange}
+      />
       <AnimatedFlatList
         style={themedStyles.homeworkList}
         data={groupedHomeworks}
