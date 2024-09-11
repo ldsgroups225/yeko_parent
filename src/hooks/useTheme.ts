@@ -6,9 +6,7 @@ import { useContext } from 'react';
  * @returns The current theme object.
  */
 function useTheme() {
-
   return useContext(ThemeContext);
-
 }
 
 export default useTheme;

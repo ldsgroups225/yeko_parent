@@ -1,7 +1,7 @@
-
 export interface IAccountInfoDTO {
   id: string;
-  nameSurname: string;
-  userName: string;
-
+  fullName: string;
+  email?: string;
+  phone?: string;
+  studentIDs?: string[];
 }

@@ -1,26 +1,44 @@
 import * as React from "react";
-import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useAppSelector } from "@src/store";
 import translate from "@helpers/localization";
 import { enableScreens } from "react-native-screens";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useTheme } from "@src/hooks";
-import { navigationRef } from "../helpers/router";
+import { navigationRef } from "@helpers/router";
 import Login from "@modules/app/screens/Login";
 import BottomNavigation from "./BottomNavigation";
 import { ScreenOptions } from "@utils/ScreenOptions";
 import Routes, { RootStackParams } from "@utils/Routes";
+import Registration from "@modules/app/screens/Register";
+import { useAuth } from "@hooks/useAuth";
+import LoadingSpinner from "@components/LoadingSpinner";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { setUser } from "@modules/app/redux/appSlice";
+import PunctualityScreen from "@modules/app/screens/PunctualityScreen";
 
 enableScreens();
 
 const Stack = createStackNavigator<RootStackParams>();
 
 function RootNavigation() {
-  const isSignedIn = useAppSelector((s) => s.AppReducer?.isSignedIn);
-  const userColorScheme = useAppSelector((s) => s?.AppReducer?.userColorScheme);
   const theme = useTheme();
+  const dispatch = useDispatch();
+  const { checkAuth, loading } = useAuth();
+  const userColorScheme = useAppSelector((s) => s?.AppReducer?.userColorScheme);
+
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
   const isDarkTheme = userColorScheme === "dark";
+
+  useEffect(() => {
+    checkAuth().then((r) => {
+      setIsSignedIn(!!r);
+      dispatch(setUser(r));
+    });
+  }, []);
 
   const navigationTheme = {
     dark: isDarkTheme,
@@ -33,6 +51,10 @@ function RootNavigation() {
       notification: theme.notification,
     },
   };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <SafeAreaProvider>
@@ -52,12 +74,26 @@ function RootNavigation() {
                   headerTitle: translate("navigation.home"),
                 }}
               />
+              <Stack.Screen
+                name={Routes.Punctuality}
+                component={PunctualityScreen}
+                options={{
+                  headerShown: true,
+                  headerStyle: { backgroundColor: "transparent" },
+                  title: "Ponctualité",
+                }}
+              />
             </>
           ) : (
             <>
               <Stack.Screen
                 name={Routes.Login}
                 component={Login}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name={Routes.Register}
+                component={Registration}
                 options={{ headerShown: false }}
               />
             </>
@@ -69,65 +105,3 @@ function RootNavigation() {
 }
 
 export default RootNavigation;
-
-// import * as Linking from 'expo-linking';
-// import * as Notifications from 'expo-notifications';
-// const prefix = Linking.createURL('/');
-
-// const notificationType = {
-//   Post: 1,
-// };
-
-// // Change ip
-// const baseUrl = 'exp://111.111.111.111:19000/--';
-
-// const config = {
-//   screens: {
-//     Home: {
-//       screens: {
-
-//         Profile: {
-
-//           screens: {
-//             Post: 'mypost/:id',
-//           },
-
-//         }
-
-//       },
-//     },
-//   },
-// };
-
-// const _linking = {
-//   prefixes: [prefix],
-//   config,
-//   subscribe(listener) {
-
-//     const onReceiveURL = ({ url }) => listener(url);
-
-//     Linking.addEventListener('url', onReceiveURL);
-
-//     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-
-//       // From API
-//       const data = response?.notification?.request?.content.data;
-
-//       if (data?.NotificationId === notificationType.Post) {
-
-//         listener(`${baseUrl}/mypost/${data?.Data}`);
-
-//       }
-
-//     });
-
-//     return () => {
-
-//       Linking.removeEventListener('url', onReceiveURL);
-
-//       subscription.remove();
-
-//     };
-
-//   },
-// };

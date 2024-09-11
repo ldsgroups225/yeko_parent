@@ -1,11 +1,11 @@
-import React from "react";
-import { Text, View, ActivityIndicator } from "react-native";
-import { useTheme, useThemedStyles } from "@src/hooks";
 import translate from "@helpers/localization";
+import { useTheme, useThemedStyles } from "@src/hooks";
+import React from "react";
+import { ActivityIndicator, Text, View } from "react-native";
 import { styles } from "./style";
 import type { GeneralActivityIndicatorProps } from "./type";
 
-const testID = "generalactivityindicator";
+const testID = "generalActivityIndicator";
 /**
  * Renders a general activity indicator with an optional text.
  *
@@ -13,7 +13,9 @@ const testID = "generalactivityindicator";
  * @param {string} props.text - The optional text to display below the activity indicator.
  * @returns {JSX.Element} The rendered GeneralActivityIndicator component.
  */
-function GeneralActivityIndicator({ text }: GeneralActivityIndicatorProps) {
+function GeneralActivityIndicator({
+  text,
+}: GeneralActivityIndicatorProps): JSX.Element {
   const theme = useTheme();
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
@@ -24,7 +26,7 @@ function GeneralActivityIndicator({ text }: GeneralActivityIndicatorProps) {
       style={themedStyles.activityIndicator}
     >
       <ActivityIndicator
-        testID={`${testID}-container-activityindicator`}
+        testID={`${testID}-container-activityIndicator`}
         animating
         size="large"
         color={theme.primary}

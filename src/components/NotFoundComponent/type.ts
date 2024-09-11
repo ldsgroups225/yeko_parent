@@ -1,3 +1,3 @@
-export interface NotFoundComponentrProps {
-    title?: string;
+export interface NotFoundComponentProps {
+  title?: string;
 }

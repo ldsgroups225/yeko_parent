@@ -2,7 +2,7 @@ import React from "react";
 import ErrorBoundaryPage from "@modules/app/screens/ErrorBoundaryPage";
 
 type ErrorBoundaryProps = {
-  children: any;
+  children: never;
 };
 
 /**
@@ -18,7 +18,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: any, errorInfo: any): void {
+  componentDidCatch(error: never, errorInfo: never): void {
     /**
      * We can capture the error with any error tracking tool
      * Like:

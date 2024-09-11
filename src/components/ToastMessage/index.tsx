@@ -1,15 +1,8 @@
-import React, {
-  forwardRef,
-  memo,
-  useCallback,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
-import { Text, Animated, TouchableWithoutFeedback } from "react-native";
-import { IToastType } from "@components/ToastMessage/IToastType";
-import { styles, toastHeight } from "./style";
-import { ToastColorEnum } from "@components/ToastMessage/ToastColorEnum";
+import { IToastType } from '@components/ToastMessage/IToastType';
+import { ToastColorEnum } from '@components/ToastMessage/ToastColorEnum';
+import React, { forwardRef, memo, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import { Animated, Text, TouchableWithoutFeedback } from 'react-native';
+import { styles, toastHeight } from './style';
 
 let stop = false;
 
@@ -27,7 +20,7 @@ const ToastMessage = forwardRef((props, ref) => {
 
   const [state, setState] = useState<IToastType>({
     type: ToastColorEnum.Info,
-    msg: "",
+    msg: '',
   });
 
   const closeToast = useCallback(() => {
@@ -75,7 +68,7 @@ const ToastMessage = forwardRef((props, ref) => {
      */
     open(param: IToastType) {
       setState({
-        msg: param?.msg || "",
+        msg: param?.msg || '',
         duration: param.duration || 1500,
         type: param.type || ToastColorEnum.Info,
       });
@@ -85,10 +78,7 @@ const ToastMessage = forwardRef((props, ref) => {
   }));
 
   return (
-    <TouchableWithoutFeedback
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-    >
+    <TouchableWithoutFeedback onPressIn={handlePressIn} onPressOut={handlePressOut}>
       <Animated.View
         style={[
           {

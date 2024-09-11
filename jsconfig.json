@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-   "jsx": "react-native",
+    "jsx": "react-native",
     "target": "esnext",
     "lib": ["dom", "esnext"],
     "skipLibCheck": true,
@@ -23,8 +23,9 @@
       "@styles/*": ["./src/styles/*"],
       "@utils/*": ["./src/utils/*"],
       "@src/*": ["./src/*"],
-    },     
+      "@lib/*": ["./lib/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules"]
 }

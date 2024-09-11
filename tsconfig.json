@@ -31,9 +31,10 @@
       "@styles/*": ["./src/styles/*"],
       "@utils/*": ["./src/utils/*"],
       "@src/*": ["./src/*"],
+      "@lib/*": ["./lib/*"]
     }
   },
-  "include": ["src/**/*","custom.d.ts"],
+  "include": ["src/**/*", "custom.d.ts"],
   "exclude": ["node_modules"],
   "extends": "expo/tsconfig.base"
 }

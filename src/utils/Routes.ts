@@ -2,11 +2,19 @@
  * Enum representing the available routes in the application.
  */
 export enum Routes {
-  Home = 'Home',
-  Login = 'Login',
-  Profile = 'Profile',
-  Settings = 'Settings',
-  Post = 'Post'
+  Home = "Home",
+  Login = "Login",
+  Register = "Register",
+  Discussion = "Discussion",
+  ConversationDetail = "ConversationDetail",
+  Homework = "Homework",
+  Info = "Info",
+  Note = "Note",
+  Punctuality = "Punctuality",
+  Schedule = "Schedule",
+  Profile = "Profile",
+  Settings = "Settings",
+  Post = "Post",
 }
 
 /**
@@ -15,6 +23,19 @@ export enum Routes {
 export type RootStackParams = {
   [Routes.Home]: undefined;
   [Routes.Login]: undefined;
+  [Routes.Register]: undefined;
+  [Routes.Discussion]: undefined;
+  [Routes.Homework]: undefined;
+  [Routes.Info]: undefined;
+  [Routes.Note]: undefined;
+  [Routes.Punctuality]: undefined;
+  [Routes.Schedule]: undefined;
+  // TODO: Make it as security
+  [Routes.ConversationDetail]: {
+    templateId: string;
+    templateTitle: string;
+    recipient: string;
+  };
 };
 
 /**
@@ -23,7 +44,7 @@ export type RootStackParams = {
 export type ProfileStackParams = {
   [Routes.Profile]: undefined;
   [Routes.Settings]: undefined;
-  [Routes.Post]: { id: string, username: string };
+  [Routes.Post]: { id: string; username: string };
 };
 
 /**
@@ -31,4 +52,4 @@ export type ProfileStackParams = {
  */
 export type NavigationParams = RootStackParams;
 
-export default Routes
+export default Routes;

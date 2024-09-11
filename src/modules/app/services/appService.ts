@@ -1,30 +1,81 @@
-import Store from '@store/index';
-import { removeStoreDataAsync } from '@src/helpers/storage';
-import { StoreEnum } from "@helpers/storage/storeEnum";
-import { LoggedOut } from '../redux/appSlice';
-import { ILoginDTO } from '../types/ILoginDTO';
+import { supabase } from "@src/lib/supabase";
+import {
+  AuthResponse,
+  AuthTokenResponsePassword,
+  Session,
+  AuthError,
+} from "@supabase/auth-js";
 
-/**
- * Signs in the user.
- * @param loginDto - The login data transfer object.
- */
-export async function signIn(loginDto: ILoginDTO) {
-  console.log(loginDto);
+interface IGetSession {
+  data: {
+    session: Session | null;
+  };
+  error: AuthError | null;
 }
 
-/**
- * Clears the user data by removing the token from the store and dispatching a LoggedOut action.
- * @returns {Promise<void>} A promise that resolves once the user data is cleared.
- */
-export async function clearUser() {
-  await removeStoreDataAsync(StoreEnum.Token);
+export const auth = {
+  async createAccount(
+    email: string,
+    password: string,
+    firstName?: string,
+    lastName?: string,
+    phone?: string
+  ): Promise<AuthResponse> {
+    try {
+      const response = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone,
+          },
+        },
+      });
 
-  Store.dispatch(LoggedOut());
-}
+      if (response.error) throw new Error(response.error.message);
+      return response;
+    } catch (error) {
+      console.error("Error creating account:", error);
+      throw error;
+    }
+  },
 
-/**
- * Signs out the user by clearing user data.
- */
-export function signOut() {
-  clearUser();
-}
+  async loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<AuthTokenResponsePassword> {
+    try {
+      const response = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (response.error) throw new Error(response.error.message);
+      return response;
+    } catch (error) {
+      console.error("Error creating session:", error);
+      throw error;
+    }
+  },
+
+  async getAccount(): Promise<IGetSession> {
+    try {
+      const response = await supabase.auth.getSession();
+      if (response.error) throw new Error(response.error.message);
+      return response;
+    } catch (error) {
+      console.error("Error getting account information:", error);
+      throw error;
+    }
+  },
+
+  async deleteSession(): Promise<{ error: AuthError | null }> {
+    try {
+      return await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error deleting session:", error);
+      throw error;
+    }
+  },
+};

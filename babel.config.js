@@ -20,6 +20,7 @@ module.exports = function (api) {
             "@providers": "./src/providers",
             "@utils": "./src/utils",
             "@src": "./src",
+            "@lib": "./lib",
             "@styles": "./src/styles",
             "@store": "./src/store",
           },
