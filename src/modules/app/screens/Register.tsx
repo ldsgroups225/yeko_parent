@@ -44,15 +44,15 @@ export default function Registration() {
   const { register, loading } = useAuth();
 
   // States
-  const [firstName, setFirstName] = useState("Amara");
-  const [lastName, setLastName] = useState("Ouattara");
-  const [phone, setPhone] = useState("0103040506");
-  const [email, setEmail] = useState("oamara@gmail.com");
-  const [password, setPassword] = useState("Aazzeerrtt88");
-  const [confirmPassword, setConfirmPassword] = useState("Aazzeerrtt88");
-  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [currentStep, setCurrentStep] = useState(3);
+  const [currentStep, setCurrentStep] = useState(1);
 
   // Navigation Callbacks
   const handleRegister = async () => {

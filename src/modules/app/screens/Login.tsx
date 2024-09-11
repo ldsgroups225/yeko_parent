@@ -48,8 +48,8 @@ export default function Login() {
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
   // States
-  const [email, setEmail] = useState("kassidarius@gmail.com");
-  const [password, setPassword] = useState("Aazzeerrtt88");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   // Navigation Callbacks
