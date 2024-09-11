@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "@modules/app/redux/appSlice";
 import AttendanceScreen from "@modules/app/screens/AttendanceScreen";
+import HomeworkScreen from "@modules/app/screens/HomeworkScreen";
 
 enableScreens();
 
@@ -81,6 +82,15 @@ function RootNavigation() {
                   headerShown: true,
                   headerStyle: { backgroundColor: "transparent" },
                   title: "Ponctualité",
+                }}
+              />
+              <Stack.Screen
+                name={Routes.Homework}
+                component={HomeworkScreen}
+                options={{
+                  headerShown: true,
+                  headerStyle: { backgroundColor: "transparent" },
+                  title: "Exercices",
                 }}
               />
             </>

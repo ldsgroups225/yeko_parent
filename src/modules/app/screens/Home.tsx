@@ -76,7 +76,7 @@ const Home: React.FC = () => {
     {
       icon: <Ionicons name="book-outline" size={24} color={theme.primary} />,
       label: "Exercices",
-      onPress: () => null, // navigationRef.navigate(Routes.Homework),
+      onPress: () => navigationRef.navigate(Routes.Homework),
     },
     {
       icon: (

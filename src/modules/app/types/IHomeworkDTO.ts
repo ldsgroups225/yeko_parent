@@ -1,8 +1,6 @@
 export interface IHomeworkDTO {
   id: string;
-  classId: string;
-  subjectId: string;
-  subjectName: string;
+  subject: string;
   dueDate: Date;
-  itWillBeANote: boolean;
+  isGraded: boolean;
 }
