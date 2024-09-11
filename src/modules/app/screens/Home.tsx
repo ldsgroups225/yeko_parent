@@ -53,7 +53,7 @@ const Home: React.FC = () => {
     {
       icon: <Ionicons name="time-outline" size={24} color={theme.primary} />,
       label: "Ponctualité",
-      onPress: () => navigationRef.navigate(Routes.Punctuality),
+      onPress: () => navigationRef.navigate(Routes.Attendance),
     },
     {
       icon: (

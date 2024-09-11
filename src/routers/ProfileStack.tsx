@@ -20,11 +20,11 @@ function ProfileStack() {
   const theme = useTheme();
   return (
     <Stack.Navigator
-      initialRouteName={Routes.Profile}
+      initialRouteName={Routes.User}
       screenOptions={{ ...ScreenOptions, headerTintColor: theme.primary }}
     >
       <Stack.Screen
-        name={Routes.Profile}
+        name={Routes.User}
         component={Profile}
         options={{
           headerTitle: translate("navigation.profile"),

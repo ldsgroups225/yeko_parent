@@ -17,7 +17,7 @@ import LoadingSpinner from "@components/LoadingSpinner";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "@modules/app/redux/appSlice";
-import PunctualityScreen from "@modules/app/screens/PunctualityScreen";
+import AttendanceScreen from "@modules/app/screens/AttendanceScreen";
 
 enableScreens();
 
@@ -60,13 +60,13 @@ function RootNavigation() {
     <SafeAreaProvider>
       <NavigationContainer ref={navigationRef} theme={navigationTheme}>
         <Stack.Navigator
-          initialRouteName={isSignedIn ? Routes.Home : Routes.Login}
+          initialRouteName={isSignedIn ? Routes.Core : Routes.Login}
           screenOptions={{ ...ScreenOptions, headerTintColor: theme.primary }}
         >
           {isSignedIn ? (
             <>
               <Stack.Screen
-                name={Routes.Home}
+                name={Routes.Core}
                 component={BottomNavigation}
                 options={{
                   gestureEnabled: false,
@@ -75,8 +75,8 @@ function RootNavigation() {
                 }}
               />
               <Stack.Screen
-                name={Routes.Punctuality}
-                component={PunctualityScreen}
+                name={Routes.Attendance}
+                component={AttendanceScreen}
                 options={{
                   headerShown: true,
                   headerStyle: { backgroundColor: "transparent" },

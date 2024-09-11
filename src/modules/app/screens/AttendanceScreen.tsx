@@ -25,7 +25,7 @@ import {
 import { formatDate, groupBy } from "../utils/index";
 import { useAppSelector } from "@src/store";
 
-const PunctualityScreen: React.FC = () => {
+const AttendanceScreen: React.FC = () => {
   const user = useAppSelector((s) => s?.AppReducer?.user);
   const themedStyles = useThemedStyles<typeof styles>(styles);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -356,4 +356,4 @@ const styles = (theme: ITheme) =>
     },
   });
 
-export default PunctualityScreen;
+export default AttendanceScreen;

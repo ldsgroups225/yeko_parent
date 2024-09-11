@@ -1,4 +1,4 @@
-import { attendance } from "@modules/app/services/punctualityService";
+import { attendance } from "@modules/app/services/attendanceService";
 import { IAttendanceDTO } from "@modules/app/types/IAttendanceDTO";
 import { useState } from "react";
 
