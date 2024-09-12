@@ -72,7 +72,9 @@ export const auth = {
 
   async deleteSession(): Promise<{ error: AuthError | null }> {
     try {
-      return await supabase.auth.signOut();
+      const response = await supabase.auth.signOut();
+      if (response.error) throw new Error(response.error.message);
+      return response;
     } catch (error) {
       console.error("Error deleting session:", error);
       throw error;

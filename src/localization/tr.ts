@@ -62,6 +62,17 @@ const resource = {
     strong: "Güçlü",
     veryStrong: "Çok Güçlü",
   },
+  title: "Profil",
+  theme: "Tema",
+  system: "Sistem",
+  dark: "Koyu",
+  light: "Açık",
+  language: "Dil",
+  fr: "Fransızca",
+  en: "İngilizce",
+  tr: "Türkçe",
+  notifications: "Bildirimler",
+  logout: "Çıkış Yap",
 };
 
 export default resource;

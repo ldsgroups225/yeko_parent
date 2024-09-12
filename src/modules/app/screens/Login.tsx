@@ -68,6 +68,8 @@ export default function Login() {
 
   // Auth Callbacks
   const handleLogin = async () => {
+    if (email === "" || password === "") return;
+
     const user = await login(email, password);
     if (!user) return showToast(translate("invalidCredentials"));
     goHomePage(user);

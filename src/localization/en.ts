@@ -66,6 +66,17 @@ const resource: ILocalization = {
     strong: "Strong",
     veryStrong: "Very Strong",
   },
+  title: "Profile",
+  theme: "Theme",
+  system: "System",
+  dark: "Dark",
+  light: "Light",
+  language: "Language",
+  fr: "French",
+  en: "English",
+  tr: "Turkish",
+  notifications: "Notifications",
+  logout: "Logout",
 };
 
 export default resource;

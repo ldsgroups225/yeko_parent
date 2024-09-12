@@ -6,7 +6,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { enableScreens } from "react-native-screens";
 import { useTheme } from "@src/hooks";
 import Routes, { ProfileStackParams } from "@utils/Routes";
-import Profile from "@modules/profile/screens/Profile";
+import ProfileScreen from "@modules/profile/screens/ProfileScreen";
 import Settings from "@modules/profile/screens/Settings";
 import Post from "@modules/profile/screens/Post";
 import translate from "@helpers/localization";
@@ -25,7 +25,7 @@ function ProfileStack() {
     >
       <Stack.Screen
         name={Routes.User}
-        component={Profile}
+        component={ProfileScreen}
         options={{
           headerTitle: translate("navigation.profile"),
           headerShown: false,

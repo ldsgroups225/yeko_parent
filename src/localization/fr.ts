@@ -65,6 +65,17 @@ const resource = {
     strong: "Fort",
     veryStrong: "Très Fort",
   },
+  title: "Profil",
+  theme: "Thème",
+  system: "Système",
+  dark: "Sombre",
+  light: "Clair",
+  language: "Langue",
+  fr: "Français",
+  en: "Anglais",
+  tr: "Turc",
+  notifications: "Notifications",
+  logout: "Déconnexion",
 };
 
 export default resource;

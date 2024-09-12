@@ -2,6 +2,9 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ColorSchemeName } from "react-native";
 import { IAppState, ProfileCompletion } from "./IAppState";
 
+/**
+ * Initial state for the app slice.
+ */
 const initialState: IAppState = {
   isSignedIn: false,
   userColorScheme: "light",
@@ -22,36 +25,90 @@ const initialState: IAppState = {
   },
 };
 
+/**
+ * A slice of the Redux store that manages app-related state.
+ */
 const appSlice = createSlice({
   name: "app",
   initialState,
   reducers: {
-    setIsSignedIn: (state, action: PayloadAction<boolean>) => {
+    /**
+     * Set the sign-in status of the user.
+     * @param state - The current state.
+     * @param action - Action containing the sign-in status.
+     */
+    setIsSignedIn(state: IAppState, action: PayloadAction<boolean>) {
       state.isSignedIn = action.payload;
     },
-    setUserColorScheme: (state, action: PayloadAction<ColorSchemeName>) => {
+
+    /**
+     * Set the user's color scheme (light or dark mode).
+     * @param state - The current state.
+     * @param action - Action containing the color scheme.
+     */
+    setUserColorScheme(
+      state: IAppState,
+      action: PayloadAction<ColorSchemeName>
+    ) {
       state.userColorScheme = action.payload;
     },
-    setIsLoading: (state, action: PayloadAction<boolean>) => {
+
+    /**
+     * Set the loading state of the application.
+     * @param state - The current state.
+     * @param action - Action containing the loading status.
+     */
+    setIsLoading(state: IAppState, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
-    setUser: (state, action: PayloadAction<any | undefined>) => {
+
+    /**
+     * Set the user object and mark the user as signed in.
+     * @param state - The current state.
+     * @param action - Action containing the user object.
+     */
+    setUser(state: IAppState, action: PayloadAction<any>) {
       state.user = action.payload;
+      state.isSignedIn = true;
     },
-    loggedOut: (state) => {
-      state = { ...state, user: undefined, isSignedIn: false, authToken: "" };
-      return state;
+
+    /**
+     * Log out the user by resetting the relevant state properties.
+     * @param state - The current state.
+     */
+    loggedOut(state: IAppState) {
+      state.user = undefined;
+      state.isSignedIn = false;
+      state.authToken = undefined;
     },
-    setAuthToken: (state, action: PayloadAction<string | undefined>) => {
+
+    /**
+     * Set the authentication token.
+     * @param state - The current state.
+     * @param action - Action containing the authentication token.
+     */
+    setAuthToken(state: IAppState, action: PayloadAction<string | undefined>) {
       state.authToken = action.payload;
     },
-    setExpoToken: (state, action: PayloadAction<string | undefined>) => {
+
+    /**
+     * Set the Expo push notification token.
+     * @param state - The current state.
+     * @param action - Action containing the Expo token.
+     */
+    setExpoToken(state: IAppState, action: PayloadAction<string | undefined>) {
       state.expoToken = action.payload;
     },
-    setProfileCompletion: (
-      state,
+
+    /**
+     * Update the profile completion state with partial updates.
+     * @param state - The current state.
+     * @param action - Action containing the profile completion details.
+     */
+    setProfileCompletion(
+      state: IAppState,
       action: PayloadAction<Partial<ProfileCompletion>>
-    ) => {
+    ) {
       state.profileCompletion = {
         ...state.profileCompletion,
         ...action.payload,

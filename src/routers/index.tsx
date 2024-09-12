@@ -28,17 +28,20 @@ function RootNavigation() {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { checkAuth, loading } = useAuth();
+  const [repeatTime, setRepeatTime] = useState(0);
+  const isSignedIn = useAppSelector((s) => s.AppReducer?.isSignedIn);
   const userColorScheme = useAppSelector((s) => s?.AppReducer?.userColorScheme);
-
-  const [isSignedIn, setIsSignedIn] = useState(false);
 
   const isDarkTheme = userColorScheme === "dark";
 
   useEffect(() => {
-    checkAuth().then((r) => {
-      setIsSignedIn(!!r);
-      dispatch(setUser(r));
-    });
+    if (!isSignedIn) {
+      setRepeatTime((prevState) => prevState++);
+      checkAuth().then((r) => {
+        if (!r) return;
+        dispatch(setUser(r));
+      });
+    }
   }, []);
 
   const navigationTheme = {

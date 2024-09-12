@@ -18,7 +18,7 @@ const SCHOOL_MONTHS = [
   "JUN",
 ] as const;
 
-type SchoolMonth = (typeof SCHOOL_MONTHS)[number];
+// type SchoolMonth = (typeof SCHOOL_MONTHS)[number];
 
 interface TitleAndMonthsProps {
   title: string;

@@ -5,6 +5,7 @@ import { useTheme, useThemedStyles } from "@hooks/index";
 import { MenuItem, MenuItemProps } from "@modules/app/components/MenuItem";
 import { spacing } from "@src/styles";
 import { useAppSelector } from "@src/store";
+import { showToast } from "@helpers/toast/showToast";
 import { ITheme } from "@styles/theme";
 import Routes from "@utils/Routes";
 import React, { useEffect } from "react";
@@ -21,10 +22,13 @@ import Animated, {
   withDelay,
   withSpring,
 } from "react-native-reanimated";
+import { loggedOut } from "@modules/app/redux/appSlice";
+import { useDispatch } from "react-redux";
 
 const Home: React.FC = () => {
   const user = useAppSelector((s) => s?.AppReducer?.user);
   const theme = useTheme();
+  const dispatch = useDispatch();
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
   const headerOpacity = useSharedValue(0);
@@ -36,7 +40,8 @@ const Home: React.FC = () => {
   }, []);
 
   if (!user) {
-    return <CsText>...your are not authorized...</CsText>;
+    dispatch(loggedOut());
+    return null;
   }
 
   const image = { uri: user.children[0].school.imageUrl };
@@ -64,14 +69,16 @@ const Home: React.FC = () => {
         />
       ),
       label: "Notes",
-      onPress: () => navigationRef.navigate(Routes.Note),
+      onPress: () =>
+        showToast("L'écran des notes n'est pas encore implementer"), // navigationRef.navigate(Routes.Note),
     },
     {
       icon: (
         <Ionicons name="calendar-outline" size={24} color={theme.primary} />
       ),
       label: "Emploi du temps",
-      onPress: () => null, // navigationRef.navigate(Routes.Schedule),
+      onPress: () =>
+        showToast("L'écran de l'emploi du temps n'est pas encore implementer"), // navigationRef.navigate(Routes.Schedule),
     },
     {
       icon: <Ionicons name="book-outline" size={24} color={theme.primary} />,
@@ -83,7 +90,8 @@ const Home: React.FC = () => {
         <Ionicons name="chatbubbles-outline" size={24} color={theme.primary} />
       ),
       label: "Discussion",
-      onPress: () => null, // navigationRef.navigate(Routes.Discussion),
+      onPress: () =>
+        showToast("L'écran des discussions n'est pas encore implementer"), // navigationRef.navigate(Routes.Discussion),
     },
     {
       icon: (
@@ -94,7 +102,10 @@ const Home: React.FC = () => {
         />
       ),
       label: "Info et scolarité",
-      onPress: () => null, // navigationRef.navigate(Routes.Info),
+      onPress: () =>
+        showToast(
+          "L'écran des infos et scolarité n'est pas encore implementer"
+        ), // navigationRef.navigate(Routes.Info),
     },
   ];
 

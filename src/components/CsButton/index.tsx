@@ -1,26 +1,26 @@
-import { useTheme, useThemedStyles } from '@src/hooks';
-import React from 'react';
-import { ActivityIndicator, Pressable, Text } from 'react-native';
+import { useTheme, useThemedStyles } from "@src/hooks";
+import React from "react";
+import { ActivityIndicator, Pressable, Text } from "react-native";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-} from 'react-native-reanimated';
-import { styles } from './style';
-import type { CsButtonProps } from './type';
+} from "react-native-reanimated";
+import { styles } from "./style";
+import type { CsButtonProps } from "./type";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const testID = 'csButton';
+const testID = "csButton";
 
 const CsButton: React.FC<CsButtonProps> = ({
   onPress,
   title,
   disabled = false,
   loading = false,
-  variant = 'primary',
-  size = 'medium',
+  variant = "primary",
+  size = "medium",
   icon,
   style,
   textStyle,
@@ -77,10 +77,16 @@ const CsButton: React.FC<CsButtonProps> = ({
       android_ripple={{ color: theme.rippleColor }}
     >
       {loading ? (
-        <ActivityIndicator testID={`${testID}-loading`} color={theme.textLight} size="small" />
+        <ActivityIndicator
+          testID={`${testID}-loading`}
+          color={theme.background}
+          size="small"
+        />
       ) : (
         <>
-          {icon && <Animated.View style={themedStyles.icon}>{icon}</Animated.View>}
+          {icon && (
+            <Animated.View style={themedStyles.icon}>{icon}</Animated.View>
+          )}
           <Text testID={`${testID}-text`} style={textStyleArray}>
             {title}
           </Text>
