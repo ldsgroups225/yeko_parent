@@ -41,7 +41,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     package: "io.ldsgroups.yeko",
     versionCode: 1,
-    googleServicesFile: "./google-services.json",
+    googleServicesFile:
+      process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
   },
   // updates: {
   //   enabled: true,

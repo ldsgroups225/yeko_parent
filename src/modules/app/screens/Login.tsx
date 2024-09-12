@@ -30,7 +30,7 @@ import { useTheme, useThemedStyles } from "@hooks/index";
 import { useAuth } from "@hooks/useAuth";
 
 // Redux
-import { setIsSignedIn, setUser } from "../redux/appSlice";
+import { setUser } from "../redux/appSlice";
 
 // Utils
 import Routes from "@utils/Routes";
@@ -68,11 +68,20 @@ export default function Login() {
 
   // Auth Callbacks
   const handleLogin = async () => {
-    if (email === "" || password === "") return;
+    try {
+      if (email === "" || password === "") return;
 
-    const user = await login(email, password);
-    if (!user) return showToast(translate("invalidCredentials"));
-    goHomePage(user);
+      const user = await login(email, password);
+      if (!user) return showToast(translate("invalidCredentials"));
+      goHomePage(user);
+    } catch (error) {
+      if (error.toString() === "Error: Invalid login credentials")
+        showToast("Email ou mot de passe incorrect");
+      else
+        showToast(
+          "Une erreur est survenue lors de la connexion. Veuillez réessayer."
+        );
+    }
   };
 
   const handleGoogleLogin = useCallback(() => {

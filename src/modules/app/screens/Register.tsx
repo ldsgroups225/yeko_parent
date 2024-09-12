@@ -56,12 +56,24 @@ export default function Registration() {
 
   // Navigation Callbacks
   const handleRegister = async () => {
-    const success = await register(email, password, firstName, lastName, phone);
-    if (!success) return showToast(translate("invalidCredentials"));
+    try {
+      const success = await register(
+        email,
+        password,
+        firstName,
+        lastName,
+        phone
+      );
+      if (!success) return showToast(translate("invalidCredentials"));
 
-    showToast(translate("registrationSuccessful"));
-    navigationRef.navigate(Routes.Login);
-    clearForm();
+      showToast(translate("registrationSuccessful"));
+      navigationRef.navigate(Routes.Login);
+      clearForm();
+    } catch (e) {
+      showToast(
+        "Une erreur est survenue lors de l'inscription. Veuillez réessayer."
+      );
+    }
   };
 
   const handleTermsAndConditions = useCallback(() => {
