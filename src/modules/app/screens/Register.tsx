@@ -127,7 +127,7 @@ export default function Registration() {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      handleRegister();
+      handleRegister().then((r) => r);
     }
   };
 

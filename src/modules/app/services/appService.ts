@@ -5,6 +5,7 @@ import {
   Session,
   AuthError,
 } from "@supabase/auth-js";
+import { ERole } from "@modules/app/types/ILoginDTO";
 
 interface IGetSession {
   data: {
@@ -22,7 +23,7 @@ export const auth = {
     phone?: string
   ): Promise<AuthResponse> {
     try {
-      const response = await supabase.auth.signUp({
+      const newAccountResponse = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -34,8 +35,18 @@ export const auth = {
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
-      return response;
+      if (newAccountResponse.error)
+        throw new Error(newAccountResponse.error.message);
+
+      // create it role
+      const newRoleResponse = await supabase.from("user_roles").insert({
+        user_id: newAccountResponse.data.user?.id,
+        role_id: ERole.PARENT,
+      });
+
+      if (newRoleResponse.error) throw new Error(newRoleResponse.error.message);
+
+      return newAccountResponse;
     } catch (error) {
       console.error("Error creating account:", error);
       throw error;

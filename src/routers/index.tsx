@@ -28,7 +28,6 @@ function RootNavigation() {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { checkAuth, loading } = useAuth();
-  const [repeatTime, setRepeatTime] = useState(0);
   const isSignedIn = useAppSelector((s) => s.AppReducer?.isSignedIn);
   const userColorScheme = useAppSelector((s) => s?.AppReducer?.userColorScheme);
 
@@ -36,7 +35,6 @@ function RootNavigation() {
 
   useEffect(() => {
     if (!isSignedIn) {
-      setRepeatTime((prevState) => prevState++);
       checkAuth().then((r) => {
         if (!r) return;
         dispatch(setUser(r));
