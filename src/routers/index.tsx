@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useAppSelector } from "@src/store";
@@ -14,7 +15,6 @@ import Routes, { RootStackParams } from "@utils/Routes";
 import Registration from "@modules/app/screens/Register";
 import { useAuth } from "@hooks/useAuth";
 import LoadingSpinner from "@components/LoadingSpinner";
-import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "@modules/app/redux/appSlice";
 import AttendanceScreen from "@modules/app/screens/AttendanceScreen";

@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { ReactElement, useCallback } from "react";
 import { View } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import MontserratFont from "@assets/font";
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().then((r) => r);
 
 type Props = {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ type Props = {
  * @param {ReactNode} props.children - The child components to render.
  * @returns {ReactElement | null} The rendered component.
  */
-function AppLoadingProvider({ children }: Props) {
+function AppLoadingProvider({ children }: Props): ReactElement | null {
   const [fontsLoaded, fontError] = useFonts(MontserratFont);
 
   const onLayoutRootView = useCallback(async () => {

@@ -1,9 +1,6 @@
-import CsCard from "@components/CsCard";
-import CsText from "@components/CsText";
-import { useThemedStyles } from "@hooks/index";
-import useDataFetching from "@hooks/useDataFetching";
-import { spacing } from "@styles/spacing";
-import { ITheme } from "@styles/theme";
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
@@ -11,21 +8,26 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
+// Components
+import CsCard from "@components/CsCard";
+import CsText from "@components/CsText";
 import { AnimatedFlatList, LoadingScreen } from "../components/index";
 
-interface Schedule {
-  id: string;
-  classId: string;
-  subjectId: string;
-  subjectName: string;
-  teacherId: string;
-  teacherName: string;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  room: string | null;
-}
+// Hooks
+import { useThemedStyles } from "@hooks/index";
+import useDataFetching from "@hooks/useDataFetching";
 
+// Types
+import { IScheduleDTO } from "@modules/app/types/IScheduleDTO";
+
+// Styles
+import { spacing } from "@styles/spacing";
+import { ITheme } from "@styles/theme";
+import { useSchedule } from "@hooks/useSchedule";
+import { useAppSelector } from "@src/store";
+
+// Constants
 const daysOfWeek = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
 const fullDaysOfWeek = [
   "Lundi",
@@ -38,103 +40,23 @@ const fullDaysOfWeek = [
 ];
 
 const ScheduleScreen: React.FC = () => {
+  // Hooks And redux
+  const user = useAppSelector((s) => s?.AppReducer?.user);
   const themedStyles = useThemedStyles<typeof styles>(styles);
+  const { getSchedules } = useSchedule();
+
+  // States
   const [selectedDay, setSelectedDay] = useState(new Date().getDay() || 7);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showTimeIndicator, setShowTimeIndicator] = useState(false);
 
+  // Data Fetching
   const fetchSchedule = useCallback(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const selectedStudentClassId = user?.children?.length
+      ? user.children.map((c) => c.class.id)[0]
+      : "";
 
-    const mockData: Schedule[] = [
-      {
-        id: "1",
-        classId: "class1",
-        subjectId: "subject1",
-        subjectName: "Mathématiques",
-        teacherId: "teacher1",
-        teacherName: "M. Kouassi",
-        dayOfWeek: 1,
-        startTime: "08:00",
-        endTime: "09:30",
-        room: "Salle 101",
-      },
-      {
-        id: "2",
-        classId: "class1",
-        subjectId: "subject2",
-        subjectName: "Français",
-        teacherId: "teacher2",
-        teacherName: "Mme Bamba",
-        dayOfWeek: 1,
-        startTime: "10:00",
-        endTime: "11:30",
-        room: "Salle 102",
-      },
-      {
-        id: "3",
-        classId: "class1",
-        subjectId: "subject3",
-        subjectName: "Histoire-Géo",
-        teacherId: "teacher3",
-        teacherName: "M. Kone",
-        dayOfWeek: 1,
-        startTime: "13:00",
-        endTime: "14:30",
-        room: "Salle 103",
-      },
-      {
-        id: "4",
-        classId: "class1",
-        subjectId: "subject4",
-        subjectName: "Anglais",
-        teacherId: "teacher4",
-        teacherName: "Mme Diallo",
-        dayOfWeek: 1,
-        startTime: "15:00",
-        endTime: "16:30",
-        room: "Salle 104",
-      },
-      {
-        id: "5",
-        classId: "class1",
-        subjectId: "subject5",
-        subjectName: "Physique-Chimie",
-        teacherId: "teacher5",
-        teacherName: "M. Toure",
-        dayOfWeek: 2,
-        startTime: "08:00",
-        endTime: "09:30",
-        room: "Labo 1",
-      },
-      {
-        id: "6",
-        classId: "class1",
-        subjectId: "subject6",
-        subjectName: "SVT",
-        teacherId: "teacher6",
-        teacherName: "Mme Coulibaly",
-        dayOfWeek: 2,
-        startTime: "10:00",
-        endTime: "11:30",
-        room: "Labo 2",
-      },
-      {
-        id: "7",
-        classId: "class1",
-        subjectId: "subject7",
-        subjectName: "EPS",
-        teacherId: "teacher7",
-        teacherName: "M. Cisse",
-        dayOfWeek: 2,
-        startTime: "14:00",
-        endTime: "16:00",
-        room: "Terrain de sport",
-      },
-      // Add more mock data for other days...
-    ];
-
-    return mockData;
+    return getSchedules(selectedStudentClassId);
   }, []);
 
   const {
@@ -144,12 +66,15 @@ const ScheduleScreen: React.FC = () => {
     fetchData: refetchData,
   } = useDataFetching(fetchSchedule, []);
 
+  // Computed Data
   const currentDaySchedule = useMemo(() => {
     if (!schedules) return [];
     return schedules.filter((schedule) => schedule.dayOfWeek === selectedDay);
   }, [schedules, selectedDay]);
 
+  // Effects
   useEffect(() => {
+    // Update current time every minute and show/hide time indicator
     const timer = setInterval(() => {
       const now = new Date();
       setCurrentTime(now);
@@ -157,11 +82,12 @@ const ScheduleScreen: React.FC = () => {
       const currentMinute = now.getMinutes();
       const totalMinutes = currentHour * 60 + currentMinute;
       setShowTimeIndicator(totalMinutes >= 8 * 60 && totalMinutes <= 17 * 60);
-    }, 60000); // Update every minute
+    }, 60000);
 
     return () => clearInterval(timer);
   }, []);
 
+  // Render Methods
   const renderDatePicker = () => {
     const today = new Date();
     const currentDay = today.getDay() || 7;
@@ -211,7 +137,7 @@ const ScheduleScreen: React.FC = () => {
   };
 
   const renderScheduleItem = useCallback(
-    ({ item }: { item: Schedule }) => <ScheduleItem schedule={item} />,
+    ({ item }: { item: IScheduleDTO }) => <ScheduleItem schedule={item} />,
     []
   );
 
@@ -221,8 +147,8 @@ const ScheduleScreen: React.FC = () => {
     const currentHour = currentTime.getHours();
     const currentMinute = currentTime.getMinutes();
     const totalMinutes = currentHour * 60 + currentMinute;
-    const startOfDay = 7 * 60; // Assuming school day starts at 7:00
-    const endOfDay = 18 * 60; // Assuming school day ends at 18:00
+    const startOfDay = 7 * 60;
+    const endOfDay = 18 * 60;
     const position =
       ((totalMinutes - startOfDay) / (endOfDay - startOfDay)) * 100;
 
@@ -240,6 +166,7 @@ const ScheduleScreen: React.FC = () => {
     );
   };
 
+  // Main Render
   if (loading) {
     return <LoadingScreen />;
   }
@@ -265,7 +192,8 @@ const ScheduleScreen: React.FC = () => {
   );
 };
 
-const ScheduleItem: React.FC<{ schedule: Schedule }> = React.memo(
+// Schedule Item Component
+const ScheduleItem: React.FC<{ schedule: IScheduleDTO }> = React.memo(
   ({ schedule }) => {
     const themedStyles = useThemedStyles<typeof styles>(styles);
     const opacity = useSharedValue(0);
@@ -304,6 +232,7 @@ const ScheduleItem: React.FC<{ schedule: Schedule }> = React.memo(
   }
 );
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {

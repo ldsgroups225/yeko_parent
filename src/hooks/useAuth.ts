@@ -3,6 +3,18 @@ import { ERole, IUserDTO } from "@modules/app/types/ILoginDTO";
 import { supabase, USERS_TABLE_ID } from "@src/lib/supabase";
 import { useEffect, useState } from "react";
 
+interface IUserRespose {
+  student_id: string;
+  first_name: string;
+  last_name: string;
+  id_number: string;
+  school_id: string;
+  school_name: string;
+  school_image_url: string;
+  class_id: string;
+  class_name: string;
+}
+
 /**
  * useAuth hook to handle authentication logic, including registration, login, logout,
  * and checking the current user's session. Handles loading state and performs async operations.
@@ -20,7 +32,7 @@ interface useAuthReturn {
   ) => Promise<boolean>;
   login: (email: string, password: string) => Promise<IUserDTO | null>;
   checkAuth: () => Promise<IUserDTO | null>;
-  logout: () => Promise<void>;
+  logout: () => Promise<boolean>;
 }
 
 export const useAuth = (): useAuthReturn => {
@@ -69,7 +81,7 @@ export const useAuth = (): useAuthReturn => {
           lastName: userData.last_name || "",
           phone: userData.phone || "",
           pushToken: userData.push_token || "",
-          children: studentsData.slice(0, 10).map((s: any) => ({
+          children: studentsData.slice(0, 10).map((s: IUserRespose) => ({
             id: s.student_id || "",
             firstName: s.first_name || "",
             lastName: s.last_name || "",
@@ -158,11 +170,12 @@ export const useAuth = (): useAuthReturn => {
    * @async
    * @returns {Promise<void>}
    */
-  const logout = async (): Promise<void> => {
+  const logout = async (): Promise<boolean> => {
     try {
       setLoading(true);
       const { error } = await auth.deleteSession();
       if (error) throw error;
+      return true;
     } catch (error) {
       console.error("[E_AUTH_LOGOUT]:", error);
       throw error;

@@ -29,9 +29,9 @@ const ProfileScreen: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
-      dispatch(loggedOut());
-      // navigationRef.navigate(Routes.Login);
+      const respose = await logout();
+
+      if (respose) dispatch(loggedOut());
     } catch (_) {
       showToast("Un problème rencontré lors de la déconnexion, réessayer");
     }
