@@ -1,14 +1,4 @@
-import CsText from "@components/CsText";
-import { Ionicons } from "@expo/vector-icons";
-import { navigationRef } from "@helpers/router";
-import { useTheme, useThemedStyles } from "@hooks/index";
-import { MenuItem, MenuItemProps } from "@modules/app/components/MenuItem";
-import { spacing } from "@src/styles";
-import { useAppSelector } from "@src/store";
-import { showToast } from "@helpers/toast/showToast";
-import { ITheme } from "@styles/theme";
-import Routes from "@utils/Routes";
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Image,
   ImageBackground,
@@ -16,6 +6,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Popover from "react-native-popover-view";
+import CsText from "@components/CsText";
+import { navigationRef } from "@helpers/router";
+import { useTheme, useThemedStyles } from "@hooks/index";
+import { MenuItem, MenuItemProps } from "@modules/app/components/MenuItem";
+import { spacing } from "@src/styles";
+import { useAppSelector } from "@src/store";
+import { ITheme } from "@styles/theme";
+import Routes from "@utils/Routes";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -24,12 +24,16 @@ import Animated, {
 } from "react-native-reanimated";
 import { loggedOut } from "@modules/app/redux/appSlice";
 import { useDispatch } from "react-redux";
+import { IStudentDTO } from "../types/ILoginDTO";
 
 const Home: React.FC = () => {
   const user = useAppSelector((s) => s?.AppReducer?.user);
   const theme = useTheme();
   const dispatch = useDispatch();
   const themedStyles = useThemedStyles<typeof styles>(styles);
+
+  const [isPopoverVisible, setPopoverVisible] = useState(false);
+  const [selectedChild, setSelectedChild] = useState(user?.children[0]);
 
   const headerOpacity = useSharedValue(0);
   const menuItemsOpacity = useSharedValue(0);
@@ -44,7 +48,7 @@ const Home: React.FC = () => {
     return null;
   }
 
-  const image = { uri: user.children[0].school.imageUrl };
+  const image = { uri: selectedChild?.school.imageUrl ?? "" };
 
   const headerAnimatedStyle = useAnimatedStyle(() => ({
     opacity: headerOpacity.value,
@@ -53,6 +57,13 @@ const Home: React.FC = () => {
   const menuItemsAnimatedStyle = useAnimatedStyle(() => ({
     opacity: menuItemsOpacity.value,
   }));
+
+  const handleChildSelect = (
+    child: React.SetStateAction<IStudentDTO | undefined>
+  ) => {
+    setSelectedChild(child);
+    setPopoverVisible(false);
+  };
 
   const menuItems: MenuItemProps[] = [
     {
@@ -69,16 +80,14 @@ const Home: React.FC = () => {
         />
       ),
       label: "Notes",
-      onPress: () =>
-        showToast("L'écran des notes n'est pas encore implementer"), // navigationRef.navigate(Routes.Note),
+      onPress: () => navigationRef.navigate(Routes.Note),
     },
     {
       icon: (
         <Ionicons name="calendar-outline" size={24} color={theme.primary} />
       ),
       label: "Emploi du temps",
-      onPress: () =>
-        showToast("L'écran de l'emploi du temps n'est pas encore implementer"), // navigationRef.navigate(Routes.Schedule),
+      onPress: () => navigationRef.navigate(Routes.Schedule),
     },
     {
       icon: <Ionicons name="book-outline" size={24} color={theme.primary} />,
@@ -90,8 +99,7 @@ const Home: React.FC = () => {
         <Ionicons name="chatbubbles-outline" size={24} color={theme.primary} />
       ),
       label: "Discussion",
-      onPress: () =>
-        showToast("L'écran des discussions n'est pas encore implementer"), // navigationRef.navigate(Routes.Discussion),
+      onPress: () => navigationRef.navigate(Routes.Discussion),
     },
     {
       icon: (
@@ -102,10 +110,7 @@ const Home: React.FC = () => {
         />
       ),
       label: "Info et scolarité",
-      onPress: () =>
-        showToast(
-          "L'écran des infos et scolarité n'est pas encore implementer"
-        ), // navigationRef.navigate(Routes.Info),
+      onPress: () => navigationRef.navigate(Routes.Info),
     },
   ];
 
@@ -120,7 +125,7 @@ const Home: React.FC = () => {
           <View style={themedStyles.headerOverlay}>
             <View style={themedStyles.schoolInfo}>
               <CsText variant="h3" style={themedStyles.schoolName}>
-                {user.children[0].school.name}
+                {selectedChild?.school.name}
               </CsText>
             </View>
             <View style={themedStyles.userContainer}>
@@ -129,21 +134,61 @@ const Home: React.FC = () => {
                 style={themedStyles.yekoLogo}
               />
               <View style={themedStyles.userInfoContainer}>
-                <TouchableOpacity style={themedStyles.userInfo}>
+                <TouchableOpacity
+                  style={themedStyles.userInfo}
+                  onPress={() => setPopoverVisible(true)}
+                >
                   <Image
                     source={require("@assets/images/profile-pic.webp")}
                     style={themedStyles.avatar}
                   />
                   <View style={themedStyles.userTextContainer}>
                     <CsText variant="body" style={themedStyles.userName}>
-                      {user.children[0].lastName} {user.children[0].firstName}
+                      {selectedChild?.lastName} {selectedChild?.firstName}
                     </CsText>
                     <CsText variant="caption" style={themedStyles.userRole}>
-                      {user.children[0].class.name}
+                      {selectedChild?.class.name}
                     </CsText>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="white" />
+                  <Ionicons name="chevron-down" size={20} color="white" />
                 </TouchableOpacity>
+
+                <Popover
+                  isVisible={isPopoverVisible}
+                  onRequestClose={() => setPopoverVisible(false)}
+                  from={
+                    <TouchableOpacity
+                      style={themedStyles.userInfo}
+                      onPress={() => setPopoverVisible(true)}
+                    />
+                  }
+                >
+                  <View style={themedStyles.popoverContent}>
+                    {user.children.map((child) => (
+                      <TouchableOpacity
+                        key={child.id}
+                        style={themedStyles.childItem}
+                        onPress={() => handleChildSelect(child)}
+                      >
+                        <Image
+                          source={require("@assets/images/profile-pic.webp")}
+                          style={themedStyles.childAvatar}
+                        />
+                        <View>
+                          <CsText variant="body" style={themedStyles.childName}>
+                            {child.lastName} {child.firstName}
+                          </CsText>
+                          <CsText
+                            variant="caption"
+                            style={themedStyles.childClass}
+                          >
+                            {child.class.name}
+                          </CsText>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </Popover>
               </View>
             </View>
           </View>
@@ -234,6 +279,30 @@ const styles = (theme: ITheme) =>
       width: 80,
       height: 40,
       resizeMode: "contain",
+    },
+    popoverContent: {
+      padding: spacing.md,
+      backgroundColor: theme.background,
+      borderRadius: 8,
+      minWidth: 200,
+    },
+    childItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: spacing.sm,
+    },
+    childAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: spacing.sm,
+    },
+    childName: {
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    childClass: {
+      color: theme.textLight,
     },
   });
 

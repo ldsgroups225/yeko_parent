@@ -14,11 +14,15 @@ import Routes, { RootStackParams } from "@utils/Routes";
 import Registration from "@modules/app/screens/Register";
 import { useAuth } from "@hooks/useAuth";
 import LoadingSpinner from "@components/LoadingSpinner";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "@modules/app/redux/appSlice";
 import AttendanceScreen from "@modules/app/screens/AttendanceScreen";
 import HomeworkScreen from "@modules/app/screens/HomeworkScreen";
+import NoteScreen from "@modules/app/screens/NoteScreen";
+import ScheduleScreen from "@modules/app/screens/ScheduleScreen";
+import DiscussionScreen from "@modules/app/screens/DiscussionScreen";
+import EventScreen from "@modules/app/screens/EventScreen";
 
 enableScreens();
 
@@ -86,12 +90,48 @@ function RootNavigation() {
                 }}
               />
               <Stack.Screen
+                name={Routes.Note}
+                component={NoteScreen}
+                options={{
+                  headerShown: true,
+                  headerStyle: { backgroundColor: "transparent" },
+                  title: "Note",
+                }}
+              />
+              <Stack.Screen
+                name={Routes.Schedule}
+                component={ScheduleScreen}
+                options={{
+                  headerShown: true,
+                  headerStyle: { backgroundColor: "transparent" },
+                  title: "Emploi du temps",
+                }}
+              />
+              <Stack.Screen
                 name={Routes.Homework}
                 component={HomeworkScreen}
                 options={{
                   headerShown: true,
                   headerStyle: { backgroundColor: "transparent" },
                   title: "Exercices",
+                }}
+              />
+              <Stack.Screen
+                name={Routes.Discussion}
+                component={DiscussionScreen}
+                options={{
+                  headerShown: true,
+                  headerStyle: { backgroundColor: "transparent" },
+                  title: "Discussion",
+                }}
+              />
+              <Stack.Screen
+                name={Routes.Info}
+                component={EventScreen}
+                options={{
+                  headerShown: true,
+                  headerStyle: { backgroundColor: "transparent" },
+                  title: "Info et scolarité",
                 }}
               />
             </>
