@@ -1,64 +1,91 @@
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
 import React, { useState } from "react";
-import { View, StyleSheet, Switch, Image } from "react-native";
+import { ColorSchemeName, Image, StyleSheet, Switch, View } from "react-native";
+import { useDispatch } from "react-redux";
+
+// Components
 import CsCard from "@components/CsCard";
 import CsText from "@components/CsText";
 import CsListTile from "@components/CsListTile";
 import CsButton from "@components/CsButton";
+import CsPicker from "@components/CsPicker";
+
+// Hooks
 import { useTheme, useThemedStyles } from "@hooks/index";
-import { spacing } from "@styles/spacing";
-import { ITheme } from "@styles/theme";
 import { useAppSelector } from "@src/store";
-import { loggedOut } from "@modules/app/redux/appSlice";
+import { useAuth } from "@hooks/useAuth";
+import useLocale from "@hooks/useLocale";
+
+// Redux
+import { loggedOut, setUserColorScheme } from "@modules/app/redux/appSlice";
+
+// Types
+import { ITheme } from "@styles/theme";
+import { SupportedLocale } from "@helpers/global/i18nInstance";
+
+// Helpers
 import translate from "@helpers/localization";
 import { showToast } from "@helpers/toast/showToast";
-import { useDispatch } from "react-redux";
-import CsPicker from "@components/CsPicker";
-import { borderRadius } from "@styles/index";
-import { useAuth } from "@hooks/useAuth";
+
+// Styles
+import { borderRadius, spacing } from "@styles/index";
+
+// Language Item Interface
+interface ILanguageItemProps {
+  label: string;
+  value: SupportedLocale;
+}
 
 const ProfileScreen: React.FC = () => {
+  // Hooks and Redux
   const theme = useTheme();
   const themedStyles = useThemedStyles<typeof styles>(styles);
   const dispatch = useDispatch();
   const user = useAppSelector((s) => s?.AppReducer?.user);
-  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState("system");
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
-
+  const selectedTheme = useAppSelector((s) => s?.AppReducer?.userColorScheme);
+  const { locale, changeLocale } = useLocale();
   const { logout, loading } = useAuth();
 
+  // States
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
+
+  // Callbacks
   const handleLogout = async () => {
     try {
-      const respose = await logout();
+      const response = await logout();
 
-      if (respose) dispatch(loggedOut());
+      if (response) dispatch(loggedOut());
     } catch (_) {
       showToast("Un problème rencontré lors de la déconnexion, réessayer");
     }
   };
 
   const handleThemeChange = (theme: string) => {
-    setSelectedTheme(theme);
-    // Implement actual theme change logic here
+    const _theme: ColorSchemeName =
+      theme === "system" ? null : (theme as ColorSchemeName);
+    dispatch(setUserColorScheme(_theme));
   };
 
-  const handleLanguageChange = (language: string) => {
-    setSelectedLanguage(language);
-    // Implement actual language change logic here
+  const handleLanguageChange = (language: SupportedLocale) => {
+    changeLocale(language);
   };
 
+  // Data for Pickers
   const themeItems = [
     { label: translate("system"), value: "system" },
     { label: translate("dark"), value: "dark" },
     { label: translate("light"), value: "light" },
   ];
 
-  const languageItems = [
+  const languageItems: ILanguageItemProps[] = [
     { label: translate("fr"), value: "fr" },
     { label: translate("en"), value: "en" },
     { label: translate("tr"), value: "tr" },
   ];
 
+  // Main Render
   return (
     <View style={themedStyles.container}>
       <CsCard style={themedStyles.profileCard}>
@@ -74,20 +101,23 @@ const ProfileScreen: React.FC = () => {
           </CsText>
         </View>
 
+        {/* Theme Picker */}
         <CsPicker
           label={translate("theme")}
-          selectedValue={selectedTheme}
+          selectedValue={selectedTheme ?? "system"}
           onValueChange={handleThemeChange}
           items={themeItems}
         />
 
+        {/* Language Picker */}
         <CsPicker
           label={translate("language")}
-          selectedValue={selectedLanguage}
+          selectedValue={locale}
           onValueChange={handleLanguageChange}
           items={languageItems}
         />
 
+        {/* Notifications Setting */}
         <CsListTile
           title={translate("notifications")}
           trailing={
@@ -101,6 +131,7 @@ const ProfileScreen: React.FC = () => {
         />
       </CsCard>
 
+      {/* Logout Button */}
       <CsButton
         title={translate("logout")}
         onPress={handleLogout}
@@ -112,6 +143,7 @@ const ProfileScreen: React.FC = () => {
   );
 };
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {

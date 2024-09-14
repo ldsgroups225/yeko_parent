@@ -73,6 +73,12 @@ const resource = {
   tr: "Türkçe",
   notifications: "Bildirimler",
   logout: "Çıkış Yap",
+  attendance: "Devamlılık",
+  notes: "Notlar",
+  schedule: "Ders Programı",
+  exercises: "Alıştırmalar",
+  discussion: "Tartışma",
+  infoAndSchooling: "Bilgi ve Okul",
 };
 
 export default resource;

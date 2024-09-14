@@ -1,56 +1,46 @@
 /**
- * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ * @fileoverview This module sets up the Localization provider for the application.
+ * @author Your Name
  */
-import moment from "moment";
-import "moment/min/locales";
-import * as Localization from "expo-localization";
-import { I18n } from "i18n-js";
-import { TrResource, EnResource, FrResource } from "@src/localization/index";
 
-const defaultLocale = "fr";
-const deviceLanguage =
-  Localization.getLocales()?.[0]?.languageCode || defaultLocale;
+import React, { createContext, ReactNode, useContext } from "react";
+import { useLocale } from "@hooks/useLocale";
+import i18n from "@helpers/global/i18nInstance";
 
-/**
- * The internationalization object used for localization.
- *
- * @remarks
- * This object is responsible for managing the localization resources and settings.
- *
- * @example
- * const i18n = new I18n(
- *   {
- *     en: EnResource,
- *     tr: TrResource,
- *   },
- *   {
- *     locale: Localization.locale,
- *     enableFallback: true,
- *     defaultLocale: "en",
- *   }
- * );
- */
-const i18n = new I18n(
-  {
-    en: EnResource,
-    tr: TrResource,
-    fr: FrResource,
-  },
-  {
-    locale: deviceLanguage,
-    enableFallback: true,
-    defaultLocale: defaultLocale,
-  }
+interface LocalizationContextType {
+  locale: string;
+  changeLocale: (newLocale: string) => void;
+  t: (key: string, options?: object) => string;
+}
+
+const LocalizationContext = createContext<LocalizationContextType | undefined>(
+  undefined
 );
 
-export default i18n;
+export const LocalizationProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const { locale, changeLocale } = useLocale();
 
-moment.locale(deviceLanguage);
+  const value = {
+    locale,
+    changeLocale,
+    t: (key: string, options?: object) => i18n.t(key, options),
+  };
 
-// moment(1316116057189).fromNow(); // il y a 7 ans
+  return (
+    <LocalizationContext.Provider value={value}>
+      {children}
+    </LocalizationContext.Provider>
+  );
+};
 
-// moment("20111031", "YYYYMMDD").fromNow(); // 9 years ago
-// moment("20120620", "YYYYMMDD").fromNow(); // 9 years ago
-// moment().startOf('day').fromNow();        // 20 hours ago
-// moment().endOf('day').fromNow();          // in 4 hours
-// moment().startOf('hour').fromNow();
+export const useLocalization = () => {
+  const context = useContext(LocalizationContext);
+  if (context === undefined) {
+    throw new Error(
+      "useLocalization must be used within a LocalizationProvider"
+    );
+  }
+  return context;
+};

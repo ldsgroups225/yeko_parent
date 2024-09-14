@@ -77,6 +77,12 @@ const resource: ILocalization = {
   tr: "Turkish",
   notifications: "Notifications",
   logout: "Logout",
+  attendance: "Attendance",
+  notes: "Grades",
+  schedule: "Schedule",
+  exercises: "Exercises",
+  discussion: "Discussion",
+  infoAndSchooling: "Info and Schooling",
 };
 
 export default resource;

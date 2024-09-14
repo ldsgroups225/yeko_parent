@@ -43,6 +43,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { useDispatch } from "react-redux";
 
+// Localization
+import translate from "@helpers/localization";
+
 const Home: React.FC = () => {
   // Hooks and Redux
   const user = useAppSelector((s) => s?.AppReducer?.user);
@@ -98,7 +101,7 @@ const Home: React.FC = () => {
   const menuItems = [
     {
       icon: <Ionicons name="time-outline" size={24} color={theme.primary} />,
-      label: "Ponctualité",
+      label: translate("attendance"),
       onPress: () => navigationRef.navigate(Routes.Attendance),
     },
     {
@@ -109,26 +112,26 @@ const Home: React.FC = () => {
           color={theme.primary}
         />
       ),
-      label: "Notes",
+      label: translate("notes"),
       onPress: () => navigationRef.navigate(Routes.Note),
     },
     {
       icon: (
         <Ionicons name="calendar-outline" size={24} color={theme.primary} />
       ),
-      label: "Emploi du temps",
+      label: translate("schedule"),
       onPress: () => navigationRef.navigate(Routes.Schedule),
     },
     {
       icon: <Ionicons name="book-outline" size={24} color={theme.primary} />,
-      label: "Exercices",
+      label: translate("exercises"),
       onPress: () => navigationRef.navigate(Routes.Homework),
     },
     {
       icon: (
         <Ionicons name="chatbubbles-outline" size={24} color={theme.primary} />
       ),
-      label: "Discussion",
+      label: translate("discussion"),
       onPress: () => navigationRef.navigate(Routes.Discussion),
     },
     {
@@ -139,7 +142,7 @@ const Home: React.FC = () => {
           color={theme.primary}
         />
       ),
-      label: "Info et scolarité",
+      label: translate("infoAndSchooling"),
       onPress: () => navigationRef.navigate(Routes.Info),
     },
   ];

@@ -14,7 +14,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const Notification: React.FC<any> = () => {
+const Notification: React.FC = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {

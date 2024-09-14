@@ -87,9 +87,11 @@ const appSlice = createSlice({
      * @param state - The current state.
      */
     loggedOut(state: IAppState) {
-      state.user = undefined;
       state.isSignedIn = false;
       state.authToken = undefined;
+      state.expoToken = undefined;
+      state.selectedStudent = undefined;
+      // state.user = undefined;
     },
 
     /**
