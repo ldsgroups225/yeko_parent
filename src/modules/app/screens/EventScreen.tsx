@@ -1,15 +1,16 @@
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
 import React, { useCallback, useMemo, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
+// Components
 import { Ionicons } from "@expo/vector-icons";
-import { useThemedStyles } from "@hooks/index";
-import useDataFetching from "@hooks/useDataFetching";
-import { shadows, spacing } from "@src/styles";
-import { ITheme } from "@styles/theme";
 import CsCard from "@components/CsCard";
 import CsText from "@components/CsText";
 import {
@@ -17,11 +18,24 @@ import {
   LoadingScreen,
   SummaryCard,
 } from "../components/index";
-import { formatDate, groupBy } from "../utils/index";
 import TitleAndMonths, {
   getSchoolMonthIndex,
 } from "@modules/app/components/TitleAndMonths";
 
+// Hooks
+import { useThemedStyles } from "@hooks/index";
+import useDataFetching from "@hooks/useDataFetching";
+
+// Types
+import { ITheme } from "@styles/theme";
+
+// Styles
+import { shadows, spacing } from "@src/styles";
+
+// Utils
+import { formatDate, groupBy } from "../utils/index";
+
+// Event Interfaces
 interface BaseEvent {
   id: string;
   title: string;
@@ -59,15 +73,20 @@ type Event =
   | ExtracurricularEvent;
 
 const EventScreen: React.FC = () => {
+  // Hooks
   const themedStyles = useThemedStyles<typeof styles>(styles);
+
+  // States
   const [selectedMonth, setSelectedMonth] = useState(
     getSchoolMonthIndex(new Date())
   );
 
+  // Data Fetching
   const fetchEvents = useCallback(async () => {
     // Simulate API call delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    // TODO: Replace with actual API call to fetch event data
     const mockData: Event[] = [
       {
         id: "1",
@@ -112,6 +131,7 @@ const EventScreen: React.FC = () => {
     fetchData: refetchData,
   } = useDataFetching(fetchEvents, []);
 
+  // Computed Data
   const summary = useMemo(() => {
     if (!events) return { totalEvents: 0, tuitionDue: 0 };
     return {
@@ -148,9 +168,10 @@ const EventScreen: React.FC = () => {
     }));
   }, [events]);
 
+  // Callbacks
   const handleMonthChange = (month: number) => {
     setSelectedMonth(month);
-    // Fetch homework data for the selected month
+    // TODO: Fetch event data for the selected month (if needed)
   };
 
   const renderEventItem = useCallback(
@@ -158,6 +179,7 @@ const EventScreen: React.FC = () => {
     []
   );
 
+  // Main Render
   if (loading) {
     return <LoadingScreen />;
   }
@@ -198,6 +220,7 @@ const EventScreen: React.FC = () => {
   );
 };
 
+// Event Item Component
 const EventItem: React.FC<{ event: Event }> = React.memo(({ event }) => {
   const themedStyles = useThemedStyles<typeof styles>(styles);
   const opacity = useSharedValue(0);
@@ -282,6 +305,7 @@ const EventItem: React.FC<{ event: Event }> = React.memo(({ event }) => {
   );
 });
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {
@@ -291,7 +315,7 @@ const styles = (theme: ITheme) =>
     header: {
       backgroundColor: theme.primary,
       padding: spacing.md,
-      paddingTop: spacing.xl, // Adjust this value based on your status bar height
+      paddingTop: spacing.xl,
     },
     headerTitle: {
       color: theme.background,

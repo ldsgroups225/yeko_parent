@@ -3,7 +3,7 @@ import { ERole, IUserDTO } from "@modules/app/types/ILoginDTO";
 import { supabase, USERS_TABLE_ID } from "@src/lib/supabase";
 import { useEffect, useState } from "react";
 
-interface IUserRespose {
+interface IUserResponse {
   student_id: string;
   first_name: string;
   last_name: string;
@@ -19,7 +19,7 @@ interface IUserRespose {
  * useAuth hook to handle authentication logic, including registration, login, logout,
  * and checking the current user's session. Handles loading state and performs async operations.
  *
- * @returns {Object} - Contains loading state, register, login, checkAuth, and logout methods.
+ * @returns {Object} - Contains loading state, register, login, checkAuth, logout, and setPushToken methods.
  */
 interface useAuthReturn {
   loading: boolean;
@@ -33,6 +33,7 @@ interface useAuthReturn {
   login: (email: string, password: string) => Promise<IUserDTO | null>;
   checkAuth: () => Promise<IUserDTO | null>;
   logout: () => Promise<boolean>;
+  setPushToken: (userId: string, token: string) => Promise<void>;
 }
 
 export const useAuth = (): useAuthReturn => {
@@ -81,7 +82,7 @@ export const useAuth = (): useAuthReturn => {
           lastName: userData.last_name || "",
           phone: userData.phone || "",
           pushToken: userData.push_token || "",
-          children: studentsData.slice(0, 10).map((s: IUserRespose) => ({
+          children: studentsData.slice(0, 10).map((s: IUserResponse) => ({
             id: s.student_id || "",
             firstName: s.first_name || "",
             lastName: s.last_name || "",
@@ -168,7 +169,7 @@ export const useAuth = (): useAuthReturn => {
   /**
    * Logout the currently authenticated user.
    * @async
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>} - Returns true if the user is logged out successfully.
    */
   const logout = async (): Promise<boolean> => {
     try {
@@ -184,5 +185,24 @@ export const useAuth = (): useAuthReturn => {
     }
   };
 
-  return { loading, register, login, logout, checkAuth };
+  /**
+   * Sets the push notification token for the specified user.
+   * @async
+   * @param {string} userId - The unique identifier of the user.
+   * @param {string} token - The push notification token to be set.
+   * @returns {Promise<void>} - Resolves once the token is successfully updated.
+   */
+  const setPushToken = async (userId: string, token: string): Promise<void> => {
+    try {
+      setLoading(true);
+      await auth.setUserPushToken(userId, token);
+    } catch (error) {
+      console.error("[E_AUTH_PUSH_TOKEN]:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { loading, register, login, logout, checkAuth, setPushToken };
 };

@@ -1,21 +1,37 @@
-import CsCard from "@components/CsCard";
-import CsText from "@components/CsText";
-import { useThemedStyles } from "@hooks/index";
-import useDataFetching from "@hooks/useDataFetching";
-import { spacing } from "@styles/spacing";
-import { ITheme } from "@styles/theme";
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
 import React, { useCallback, useMemo, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
+// Components
+import CsCard from "@components/CsCard";
+import CsText from "@components/CsText";
 import {
   AnimatedFlatList,
   LoadingScreen,
   SummaryCard,
 } from "../components/index";
+import TitleAndMonths, {
+  getSchoolMonthIndex,
+} from "@modules/app/components/TitleAndMonths";
+
+// Hooks
+import { useThemedStyles } from "@hooks/index";
+import useDataFetching from "@hooks/useDataFetching";
+
+// Types
+import { ITheme } from "@styles/theme";
+
+// Styles
+import { spacing } from "@styles/spacing";
+
+// Utils
 import {
   calculateAverage,
   formatDate,
@@ -23,10 +39,8 @@ import {
   groupBy,
   truncateText,
 } from "../utils/index";
-import TitleAndMonths, {
-  getSchoolMonthIndex,
-} from "@modules/app/components/TitleAndMonths";
 
+// Interfaces
 interface Note {
   id: string;
   subjectId: string;
@@ -48,15 +62,20 @@ interface NoteSummary {
 }
 
 const NoteScreen: React.FC = () => {
+  // Hooks
   const themedStyles = useThemedStyles<typeof styles>(styles);
+
+  // States
   const [selectedMonth, setSelectedMonth] = useState(
     getSchoolMonthIndex(new Date())
   );
 
+  // Data Fetching
   const fetchNotes = useCallback(async () => {
     // Simulate API call delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    // TODO: Replace with actual API call to fetch note data
     const mockData: Note[] = [
       {
         id: "1",
@@ -99,6 +118,7 @@ const NoteScreen: React.FC = () => {
     fetchData: refetchData,
   } = useDataFetching(fetchNotes, []);
 
+  // Computed Data
   const summary: NoteSummary = useMemo(() => {
     if (!notes || notes.length === 0)
       return { averageNote: 0, bestSubject: "", worstSubject: "" };
@@ -157,11 +177,13 @@ const NoteScreen: React.FC = () => {
     },
   ];
 
+  // Callbacks
   const handleMonthChange = (month: number) => {
     setSelectedMonth(month);
-    // Fetch homework data for the selected month
+    // TODO: Fetch note data for the selected month (if needed)
   };
 
+  // Main Render
   if (loading) {
     return <LoadingScreen />;
   }
@@ -199,6 +221,7 @@ const NoteScreen: React.FC = () => {
   );
 };
 
+// Subject Card Component
 const SubjectCard: React.FC<{ title: string; average: number; notes: Note[] }> =
   React.memo(({ title, average, notes }) => {
     const themedStyles = useThemedStyles<typeof styles>(styles);
@@ -232,6 +255,7 @@ const SubjectCard: React.FC<{ title: string; average: number; notes: Note[] }> =
     );
   });
 
+// Note Item Component
 const NoteItem: React.FC<{ note: Note }> = React.memo(({ note }) => {
   const themedStyles = useThemedStyles<typeof styles>(styles);
   const formattedDate = formatDate(note.date, "d MMM");
@@ -261,6 +285,7 @@ const NoteItem: React.FC<{ note: Note }> = React.memo(({ note }) => {
   );
 });
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {
@@ -270,7 +295,7 @@ const styles = (theme: ITheme) =>
     header: {
       backgroundColor: theme.primary,
       padding: spacing.md,
-      paddingTop: spacing.xl, // Adjust this value based on your status bar height
+      paddingTop: spacing.xl,
     },
     headerTitle: {
       color: theme.background,

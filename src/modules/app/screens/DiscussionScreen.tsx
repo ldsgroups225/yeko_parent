@@ -1,24 +1,40 @@
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+
+// Components
 import CsCard from "@components/CsCard";
 import CsText from "@components/CsText";
 import { Ionicons } from "@expo/vector-icons";
-import { navigationRef } from "@helpers/router";
-import { useThemedStyles } from "@hooks/index";
-import useDataFetching from "@hooks/useDataFetching";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { shadows, spacing } from "@src/styles";
-import { ITheme } from "@styles/theme";
-import Routes from "@utils/Routes";
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import {
   AnimatedFlatList,
   LoadingScreen,
   SummaryCard,
 } from "../components/index";
-import { formatDate } from "../utils/index";
 import NewConversationModal from "./NewConversationModal";
 
+// Hooks
+import { useThemedStyles } from "@hooks/index";
+import useDataFetching from "@hooks/useDataFetching";
+import { useNavigation } from "@react-navigation/native";
+
+// Navigation
+import { StackNavigationProp } from "@react-navigation/stack";
+import { navigationRef } from "@helpers/router";
+import Routes from "@utils/Routes";
+
+// Types
+import { ITheme } from "@styles/theme";
+
+// Styles
+import { shadows, spacing } from "@src/styles";
+
+// Utils
+import { formatDate } from "../utils/index";
+
+// Interfaces
 interface Conversation {
   id: string;
   topic: string;
@@ -35,6 +51,7 @@ interface Template {
   recipient: "teacher" | "admin";
 }
 
+// Navigation Types
 type RootStackParamList = {
   ConversationDetail: {
     templateId: string;
@@ -49,12 +66,16 @@ type DiscussionScreenNavigationProp = StackNavigationProp<
 >;
 
 const DiscussionScreen: React.FC = () => {
+  // Hooks and Navigation
   const navigation = useNavigation<DiscussionScreenNavigationProp>();
   const themedStyles = useThemedStyles<typeof styles>(styles);
+
+  // States
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [isNewConversationModalVisible, setNewConversationModalVisible] =
     useState(false);
 
+  // Refs and Animations
   const modalAnimatedValue = useRef(new Animated.Value(0)).current;
   const modalBackgroundOpacity = modalAnimatedValue.interpolate({
     inputRange: [0, 1],
@@ -65,9 +86,12 @@ const DiscussionScreen: React.FC = () => {
     outputRange: [300, 0],
   });
 
+  // Data Fetching
   const fetchConversations = useCallback(async () => {
+    // Simulate API call delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    // TODO: Replace with actual API call to fetch conversation data
     const mockData: Conversation[] = [
       {
         id: "1",
@@ -107,6 +131,7 @@ const DiscussionScreen: React.FC = () => {
     fetchData: refetchData,
   } = useDataFetching(fetchConversations, []);
 
+  // Computed Data
   const summary = useMemo(() => {
     if (!conversations) return { totalConversations: 0, unreadMessages: 0 };
     return {
@@ -133,6 +158,7 @@ const DiscussionScreen: React.FC = () => {
     },
   ];
 
+  // Render Methods
   const renderHeader = () => (
     <View style={themedStyles.header}>
       <CsText style={themedStyles.headerTitle}>Discussions</CsText>
@@ -153,6 +179,7 @@ const DiscussionScreen: React.FC = () => {
                   themedStyles.selectedFilterButtonText,
               ])}
             >
+              {/* Filter labels */}
               {filter === "all"
                 ? "Tous"
                 : filter === "unread"
@@ -174,6 +201,7 @@ const DiscussionScreen: React.FC = () => {
     []
   );
 
+  // Callbacks for Modal and Navigation
   const handleNewConversation = () => {
     setNewConversationModalVisible(true);
     Animated.spring(modalAnimatedValue, {
@@ -203,6 +231,7 @@ const DiscussionScreen: React.FC = () => {
     });
   };
 
+  // Main Render
   if (loading) {
     return <LoadingScreen />;
   }
@@ -233,6 +262,8 @@ const DiscussionScreen: React.FC = () => {
         <Ionicons name="add" size={24} color={themedStyles.buttonText.color} />
         <CsText style={themedStyles.buttonText}>Nouvelle discussion</CsText>
       </TouchableOpacity>
+
+      {/* New Conversation Modal */}
       {isNewConversationModalVisible && (
         <>
           <Animated.View
@@ -254,6 +285,7 @@ const DiscussionScreen: React.FC = () => {
   );
 };
 
+// Conversation Item Component
 const ConversationItem: React.FC<{ conversation: Conversation }> = React.memo(
   ({ conversation }) => {
     const themedStyles = useThemedStyles<typeof styles>(styles);
@@ -315,6 +347,7 @@ const ConversationItem: React.FC<{ conversation: Conversation }> = React.memo(
   }
 );
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {

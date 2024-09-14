@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useAppSelector } from "@src/store";
@@ -23,6 +23,7 @@ import NoteScreen from "@modules/app/screens/NoteScreen";
 import ScheduleScreen from "@modules/app/screens/ScheduleScreen";
 import DiscussionScreen from "@modules/app/screens/DiscussionScreen";
 import EventScreen from "@modules/app/screens/EventScreen";
+import throttle from "lodash.throttle";
 
 enableScreens();
 
@@ -31,32 +32,62 @@ const Stack = createStackNavigator<RootStackParams>();
 function RootNavigation() {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { checkAuth, loading } = useAuth();
+  const { checkAuth, loading, setPushToken } = useAuth();
   const isSignedIn = useAppSelector((s) => s.AppReducer?.isSignedIn);
+  const user = useAppSelector((s) => s.AppReducer?.user);
+  const token = useAppSelector((s) => s.AppReducer?.expoToken);
   const userColorScheme = useAppSelector((s) => s?.AppReducer?.userColorScheme);
 
   const isDarkTheme = userColorScheme === "dark";
+  const recheckAuthTriggered = useRef(false);
+
+  const recheckAuth = useCallback(async () => {
+    const r = await checkAuth();
+    if (r) {
+      dispatch(setUser(r));
+    }
+  }, [checkAuth, dispatch, user, token]);
+
+  const throttledSetPushToken = useMemo(
+    () =>
+      throttle(
+        (userId: string, pushToken: string) => {
+          setPushToken(userId, pushToken).then((r) => r);
+        },
+        5000,
+        { leading: true, trailing: true }
+      ),
+    []
+  );
 
   useEffect(() => {
-    if (!isSignedIn) {
-      checkAuth().then((r) => {
-        if (!r) return;
-        dispatch(setUser(r));
-      });
+    // Trigger recheckAuth only once when not signed in
+    if (!isSignedIn && !recheckAuthTriggered.current) {
+      recheckAuth().then((r) => r);
+      recheckAuthTriggered.current = true;
+    } else if (isSignedIn && user && token) {
+      if (user && token) throttledSetPushToken(user.id, token);
     }
-  }, []);
 
-  const navigationTheme = {
-    dark: isDarkTheme,
-    colors: {
-      primary: theme.primary,
-      background: theme.background,
-      card: theme.card,
-      text: theme.text,
-      border: theme.border,
-      notification: theme.notification,
-    },
-  };
+    return () => {
+      throttledSetPushToken.cancel();
+    };
+  }, [isSignedIn, user, token]);
+
+  const navigationTheme = useMemo(
+    () => ({
+      dark: isDarkTheme,
+      colors: {
+        primary: theme.primary,
+        background: theme.background,
+        card: theme.card,
+        text: theme.text,
+        border: theme.border,
+        notification: theme.notification,
+      },
+    }),
+    [isDarkTheme, theme]
+  );
 
   if (loading) {
     return <LoadingSpinner />;
@@ -80,60 +111,43 @@ function RootNavigation() {
                   headerTitle: translate("navigation.home"),
                 }}
               />
-              <Stack.Screen
-                name={Routes.Attendance}
-                component={AttendanceScreen}
-                options={{
+              <Stack.Group
+                screenOptions={{
                   headerShown: true,
                   headerStyle: { backgroundColor: "transparent" },
-                  title: "Ponctualité",
                 }}
-              />
-              <Stack.Screen
-                name={Routes.Note}
-                component={NoteScreen}
-                options={{
-                  headerShown: true,
-                  headerStyle: { backgroundColor: "transparent" },
-                  title: "Note",
-                }}
-              />
-              <Stack.Screen
-                name={Routes.Schedule}
-                component={ScheduleScreen}
-                options={{
-                  headerShown: true,
-                  headerStyle: { backgroundColor: "transparent" },
-                  title: "Emploi du temps",
-                }}
-              />
-              <Stack.Screen
-                name={Routes.Homework}
-                component={HomeworkScreen}
-                options={{
-                  headerShown: true,
-                  headerStyle: { backgroundColor: "transparent" },
-                  title: "Exercices",
-                }}
-              />
-              <Stack.Screen
-                name={Routes.Discussion}
-                component={DiscussionScreen}
-                options={{
-                  headerShown: true,
-                  headerStyle: { backgroundColor: "transparent" },
-                  title: "Discussion",
-                }}
-              />
-              <Stack.Screen
-                name={Routes.Info}
-                component={EventScreen}
-                options={{
-                  headerShown: true,
-                  headerStyle: { backgroundColor: "transparent" },
-                  title: "Info et scolarité",
-                }}
-              />
+              >
+                <Stack.Screen
+                  name={Routes.Attendance}
+                  component={AttendanceScreen}
+                  options={{ title: "Ponctualité" }}
+                />
+                <Stack.Screen
+                  name={Routes.Note}
+                  component={NoteScreen}
+                  options={{ title: "Note" }}
+                />
+                <Stack.Screen
+                  name={Routes.Schedule}
+                  component={ScheduleScreen}
+                  options={{ title: "Emploi du temps" }}
+                />
+                <Stack.Screen
+                  name={Routes.Homework}
+                  component={HomeworkScreen}
+                  options={{ title: "Exercices" }}
+                />
+                <Stack.Screen
+                  name={Routes.Discussion}
+                  component={DiscussionScreen}
+                  options={{ title: "Discussion" }}
+                />
+                <Stack.Screen
+                  name={Routes.Info}
+                  component={EventScreen}
+                  options={{ title: "Info et scolarité" }}
+                />
+              </Stack.Group>
             </>
           ) : (
             <>
@@ -155,4 +169,4 @@ function RootNavigation() {
   );
 }
 
-export default RootNavigation;
+export default React.memo(RootNavigation);

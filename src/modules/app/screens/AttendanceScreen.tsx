@@ -1,15 +1,6 @@
-import CsCard from "@components/CsCard";
-import CsText from "@components/CsText";
-import { useThemedStyles } from "@hooks/index";
-import { useAttendance } from "@hooks/useAttendance";
-import useDataFetching from "@hooks/useDataFetching";
-import {
-  AttendanceStatus,
-  IAttendanceDTO,
-} from "@modules/app/types/IAttendanceDTO";
-import { shadows } from "@src/styles";
-import { spacing } from "@styles/spacing";
-import { ITheme } from "@styles/theme";
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
 import React, { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
@@ -17,33 +8,55 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
+// Components
+import CsCard from "@components/CsCard";
+import CsText from "@components/CsText";
 import {
   AnimatedFlatList,
   LoadingScreen,
   SummaryCard,
 } from "../components/index";
-import { formatDate, groupBy } from "../utils/index";
-import { useAppSelector } from "@src/store";
 import TitleAndMonths, {
   getSchoolMonthIndex,
 } from "@modules/app/components/TitleAndMonths";
 
+// Hooks
+import { useThemedStyles } from "@hooks/index";
+import { useAttendance } from "@hooks/useAttendance";
+import useDataFetching from "@hooks/useDataFetching";
+import { useAppSelector } from "@src/store";
+
+// Types
+import {
+  AttendanceStatus,
+  IAttendanceDTO,
+} from "@modules/app/types/IAttendanceDTO";
+
+// Styles
+import { shadows } from "@src/styles";
+import { spacing } from "@styles/spacing";
+import { ITheme } from "@styles/theme";
+
+// Utils
+import { formatDate, groupBy } from "../utils/index";
+
 const AttendanceScreen: React.FC = () => {
-  const user = useAppSelector((s) => s?.AppReducer?.user);
+  // Hooks and Redux
+  const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
   const themedStyles = useThemedStyles<typeof styles>(styles);
+  const { getAttendances } = useAttendance();
+
+  // States
   const [selectedMonth, setSelectedMonth] = useState(
     getSchoolMonthIndex(new Date())
   );
-  const { getAttendances } = useAttendance();
 
+  // Data Fetching
   const fetchAttendances = useCallback(async () => {
-    const selectedStudentId = user?.children?.length
-      ? user.children.map((c) => c.id)[0]
-      : "";
-
-    if (!selectedStudentId.length) return;
-    return await getAttendances(selectedStudentId);
-  }, []);
+    if (!selectedStudent) return [];
+    return await getAttendances(selectedStudent.id);
+  }, [selectedStudent, getAttendances]);
 
   const {
     data: attendances,
@@ -52,6 +65,7 @@ const AttendanceScreen: React.FC = () => {
     fetchData: refetchData,
   } = useDataFetching(fetchAttendances, []);
 
+  // Computed Data
   const summary = useMemo(() => {
     if (!attendances)
       return { totalAbsences: 0, totalLates: 0, excusedAbsences: 0 };
@@ -96,9 +110,10 @@ const AttendanceScreen: React.FC = () => {
     }));
   }, [attendances]);
 
+  // Callbacks
   const handleMonthChange = (month: number) => {
     setSelectedMonth(month);
-    // Fetch homework data for the selected month
+    // TODO: Fetch attendance data for the selected month (if needed)
   };
 
   const renderAttendanceItem = useCallback(
@@ -108,6 +123,7 @@ const AttendanceScreen: React.FC = () => {
     []
   );
 
+  // Main Render
   if (loading) {
     return <LoadingScreen />;
   }
@@ -148,6 +164,7 @@ const AttendanceScreen: React.FC = () => {
   );
 };
 
+// Attendance Item Component
 const AttendanceItem: React.FC<{ attendance: IAttendanceDTO }> = React.memo(
   ({ attendance }) => {
     const themedStyles = useThemedStyles<typeof styles>(styles);
@@ -197,11 +214,13 @@ const AttendanceItem: React.FC<{ attendance: IAttendanceDTO }> = React.memo(
   }
 );
 
+// Attendance Status Badge Component
 const AttendanceStatusBadge: React.FC<{
   status: AttendanceStatus;
   isExcused: boolean;
 }> = React.memo(({ status, isExcused }) => {
   const themedStyles = useThemedStyles<typeof styles>(styles);
+
   const getStatusColor = () => {
     if (status === "absent")
       return isExcused ? themedStyles.warningBadge : themedStyles.errorBadge;
@@ -224,6 +243,7 @@ const AttendanceStatusBadge: React.FC<{
   );
 });
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {
@@ -233,7 +253,7 @@ const styles = (theme: ITheme) =>
     header: {
       backgroundColor: theme.primary,
       padding: spacing.md,
-      paddingTop: spacing.xl, // Adjust this value based on your status bar height
+      paddingTop: spacing.xl,
     },
     headerTitle: {
       color: theme.background,

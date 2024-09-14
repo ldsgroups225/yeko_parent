@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ImageBackground,
@@ -6,50 +9,76 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+// Components
 import { Ionicons } from "@expo/vector-icons";
 import Popover from "react-native-popover-view";
 import CsText from "@components/CsText";
-import { navigationRef } from "@helpers/router";
+import { MenuItem } from "@modules/app/components/MenuItem";
+
+// Hooks
 import { useTheme, useThemedStyles } from "@hooks/index";
-import { MenuItem, MenuItemProps } from "@modules/app/components/MenuItem";
-import { spacing } from "@src/styles";
 import { useAppSelector } from "@src/store";
+
+// Redux
+import { loggedOut, setSelectedStudent } from "@modules/app/redux/appSlice";
+
+// Types
 import { ITheme } from "@styles/theme";
+import { IStudentDTO } from "../types/ILoginDTO";
+
+// Navigation
+import { navigationRef } from "@helpers/router";
 import Routes from "@utils/Routes";
+
+// Styles
+import { spacing } from "@src/styles";
+
+// Animations
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withSpring,
 } from "react-native-reanimated";
-import { loggedOut } from "@modules/app/redux/appSlice";
 import { useDispatch } from "react-redux";
-import { IStudentDTO } from "../types/ILoginDTO";
 
 const Home: React.FC = () => {
+  // Hooks and Redux
   const user = useAppSelector((s) => s?.AppReducer?.user);
   const theme = useTheme();
   const dispatch = useDispatch();
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
+  // States
   const [isPopoverVisible, setPopoverVisible] = useState(false);
   const [selectedChild, setSelectedChild] = useState(user?.children[0]);
 
+  // Animations
   const headerOpacity = useSharedValue(0);
   const menuItemsOpacity = useSharedValue(0);
 
+  // Effects
   useEffect(() => {
+    // Animate header and menu items on component mount
     headerOpacity.value = withDelay(300, withSpring(1));
     menuItemsOpacity.value = withDelay(600, withSpring(1));
-  }, []);
 
+    // Set initial selected student
+    const selectedStudent = user?.children[0];
+    dispatch(setSelectedStudent(selectedStudent));
+  }, [dispatch, user]);
+
+  // If user is not logged in, redirect to login
   if (!user) {
     dispatch(loggedOut());
     return null;
   }
 
+  // Data for Image Background
   const image = { uri: selectedChild?.school.imageUrl ?? "" };
 
+  // Animated Styles
   const headerAnimatedStyle = useAnimatedStyle(() => ({
     opacity: headerOpacity.value,
   }));
@@ -58,14 +87,15 @@ const Home: React.FC = () => {
     opacity: menuItemsOpacity.value,
   }));
 
-  const handleChildSelect = (
-    child: React.SetStateAction<IStudentDTO | undefined>
-  ) => {
+  // Callbacks
+  const handleChildSelect = (child: IStudentDTO) => {
     setSelectedChild(child);
+    dispatch(setSelectedStudent(child));
     setPopoverVisible(false);
   };
 
-  const menuItems: MenuItemProps[] = [
+  // Menu Items Data
+  const menuItems = [
     {
       icon: <Ionicons name="time-outline" size={24} color={theme.primary} />,
       label: "Ponctualité",
@@ -114,8 +144,10 @@ const Home: React.FC = () => {
     },
   ];
 
+  // Main Render
   return (
     <>
+      {/* Animated Header */}
       <Animated.View style={[themedStyles.header, headerAnimatedStyle]}>
         <ImageBackground
           source={image}
@@ -153,6 +185,7 @@ const Home: React.FC = () => {
                   <Ionicons name="chevron-down" size={20} color="white" />
                 </TouchableOpacity>
 
+                {/* Child Selection Popover */}
                 <Popover
                   isVisible={isPopoverVisible}
                   onRequestClose={() => setPopoverVisible(false)}
@@ -194,6 +227,8 @@ const Home: React.FC = () => {
           </View>
         </ImageBackground>
       </Animated.View>
+
+      {/* Animated Menu Items */}
       <Animated.View
         style={[themedStyles.menuContainer, menuItemsAnimatedStyle]}
       >
@@ -205,6 +240,7 @@ const Home: React.FC = () => {
   );
 };
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {

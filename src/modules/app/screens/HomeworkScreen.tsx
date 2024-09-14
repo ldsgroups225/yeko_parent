@@ -1,13 +1,6 @@
-import CsCard from "@components/CsCard";
-import CsText from "@components/CsText";
-import { Ionicons } from "@expo/vector-icons";
-import { useThemedStyles } from "@hooks/index";
-import useDataFetching from "@hooks/useDataFetching";
-import { useHomework } from "@hooks/useHomework";
-import { IHomeworkDTO } from "@modules/app/types/IHomeworkDTO";
-import { borderRadius, shadows } from "@styles/index";
-import { spacing } from "@styles/spacing";
-import { ITheme } from "@styles/theme";
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
 import React, { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
@@ -15,15 +8,35 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
+// Components
+import CsCard from "@components/CsCard";
+import CsText from "@components/CsText";
+import { Ionicons } from "@expo/vector-icons";
 import {
   AnimatedFlatList,
   LoadingScreen,
   SummaryCard,
 } from "../components/index";
-import { formatDate, groupBy } from "../utils/index";
-import { useAppSelector } from "@src/store";
 import TitleAndMonths from "@modules/app/components/TitleAndMonths";
 
+// Hooks
+import { useThemedStyles } from "@hooks/index";
+import useDataFetching from "@hooks/useDataFetching";
+import { useHomework } from "@hooks/useHomework";
+import { useAppSelector } from "@src/store";
+
+// Types
+import { IHomeworkDTO } from "@modules/app/types/IHomeworkDTO";
+import { ITheme } from "@styles/theme";
+
+// Styles
+import { borderRadius, shadows, spacing } from "@styles/index";
+
+// Utils
+import { formatDate, groupBy } from "../utils/index";
+
+// Helper Function
 const getSchoolMonthIndex = (date: Date): number => {
   const month = date.getMonth();
   // If it's January to June, add 4 to the index (because September is index 0)
@@ -39,19 +52,22 @@ const getSchoolMonthIndex = (date: Date): number => {
 };
 
 const HomeworkScreen: React.FC = () => {
-  const user = useAppSelector((s) => s?.AppReducer?.user);
+  // Hooks and Redux
+  const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
   const themedStyles = useThemedStyles<typeof styles>(styles);
+  const { getHomeworks } = useHomework();
+
+  // States
   const [selectedMonth, setSelectedMonth] = useState(
     getSchoolMonthIndex(new Date())
   );
 
-  const { getHomeworks } = useHomework();
-
+  // Data Fetching
   const fetchHomework = useCallback(async () => {
-    return user?.children.length
-      ? getHomeworks(user.children[0].class.id)
-      : ([] as IHomeworkDTO[]);
-  }, []);
+    if (!selectedStudent) return [];
+
+    return getHomeworks(selectedStudent.class.id);
+  }, [selectedStudent, getHomeworks]);
 
   const {
     data: homeworks,
@@ -60,6 +76,7 @@ const HomeworkScreen: React.FC = () => {
     fetchData: refetchData,
   } = useDataFetching(fetchHomework, []);
 
+  // Computed Data
   const summary = useMemo(() => {
     if (!homeworks) return { totalHomework: 0, gradeableHomework: 0 };
     return {
@@ -67,11 +84,6 @@ const HomeworkScreen: React.FC = () => {
       gradeableHomework: homeworks.filter((hw) => hw.isGraded).length,
     };
   }, [homeworks]);
-
-  const handleMonthChange = (month: number) => {
-    setSelectedMonth(month);
-    // Fetch homework data for the selected month
-  };
 
   const summaryItems = [
     {
@@ -99,6 +111,12 @@ const HomeworkScreen: React.FC = () => {
     }));
   }, [homeworks]);
 
+  // Callbacks
+  const handleMonthChange = (month: number) => {
+    setSelectedMonth(month);
+    // TODO: Fetch homework data for the selected month (if needed)
+  };
+
   const renderHomeworkItem = useCallback(
     ({ item }: { item: IHomeworkDTO }) => <HomeworkItem homework={item} />,
     []
@@ -119,6 +137,7 @@ const HomeworkScreen: React.FC = () => {
     </View>
   );
 
+  // Main Render
   if (loading) {
     return <LoadingScreen />;
   }
@@ -160,6 +179,7 @@ const HomeworkScreen: React.FC = () => {
   );
 };
 
+// Homework Item Component
 const HomeworkItem: React.FC<{ homework: IHomeworkDTO }> = React.memo(
   ({ homework }) => {
     const themedStyles = useThemedStyles<typeof styles>(styles);
@@ -203,6 +223,7 @@ const HomeworkItem: React.FC<{ homework: IHomeworkDTO }> = React.memo(
   }
 );
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {
@@ -212,7 +233,7 @@ const styles = (theme: ITheme) =>
     header: {
       backgroundColor: theme.primary,
       padding: spacing.md,
-      paddingTop: spacing.xl, // Adjust this value based on your status bar height
+      paddingTop: spacing.xl,
     },
     headerTitle: {
       color: theme.background,

@@ -10,6 +10,7 @@ const initialState: IAppState = {
   userColorScheme: "light",
   isLoading: false,
   user: undefined,
+  selectedStudent: undefined,
   authToken: undefined,
   expoToken: undefined,
   profileCompletion: {
@@ -73,6 +74,15 @@ const appSlice = createSlice({
     },
 
     /**
+     * Set the current selected student object.
+     * @param state - The current state.
+     * @param action - Action containing the user object.
+     */
+    setSelectedStudent(state: IAppState, action: PayloadAction<any>) {
+      state.selectedStudent = action.payload;
+    },
+
+    /**
      * Log out the user by resetting the relevant state properties.
      * @param state - The current state.
      */
@@ -122,6 +132,7 @@ export const {
   setUserColorScheme,
   setIsLoading,
   setUser,
+  setSelectedStudent,
   loggedOut,
   setAuthToken,
   setExpoToken,

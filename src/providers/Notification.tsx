@@ -65,7 +65,8 @@ async function registerForPushNotificationsAsync() {
         projectId: Constants.default.easConfig?.projectId, // You can get your projectId from app.config.ts file. It is located in the extra.eas.projectId field. If you don't have it, you can get it from the link in the comment above.
       })
     ).data;
-    console.log(token);
+
+    // ? console.log("[TOKEN]:", token);
   } else {
     alert("Must use physical device for Push Notifications");
   }

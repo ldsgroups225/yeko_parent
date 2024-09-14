@@ -41,7 +41,7 @@ const fullDaysOfWeek = [
 
 const ScheduleScreen: React.FC = () => {
   // Hooks And redux
-  const user = useAppSelector((s) => s?.AppReducer?.user);
+  const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
   const themedStyles = useThemedStyles<typeof styles>(styles);
   const { getSchedules } = useSchedule();
 
@@ -52,11 +52,9 @@ const ScheduleScreen: React.FC = () => {
 
   // Data Fetching
   const fetchSchedule = useCallback(async () => {
-    const selectedStudentClassId = user?.children?.length
-      ? user.children.map((c) => c.class.id)[0]
-      : "";
+    if (!selectedStudent) return;
 
-    return getSchedules(selectedStudentClassId);
+    return getSchedules(selectedStudent.class.id);
   }, []);
 
   const {

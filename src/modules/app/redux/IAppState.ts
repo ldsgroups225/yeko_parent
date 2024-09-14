@@ -1,5 +1,5 @@
 import { ColorSchemeName } from "react-native";
-import { IUserDTO } from "../types/ILoginDTO";
+import { IStudentDTO, IUserDTO } from "../types/ILoginDTO";
 
 export interface ProfileCompletion {
   currentStep: number;
@@ -18,6 +18,7 @@ export interface IAppState {
   userColorScheme: ColorSchemeName;
   isLoading: boolean;
   user: IUserDTO | undefined;
+  selectedStudent: IStudentDTO | undefined;
   authToken: string | undefined;
   expoToken: string | undefined;
   profileCompletion: ProfileCompletion;

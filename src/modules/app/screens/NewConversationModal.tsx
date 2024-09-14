@@ -1,9 +1,6 @@
-import CsCard from "@components/CsCard";
-import CsText from "@components/CsText";
-import { Ionicons } from "@expo/vector-icons";
-import { useThemedStyles } from "@hooks/index";
-import { spacing } from "@src/styles";
-import { ITheme } from "@styles/theme";
+/**
+ * @author Ali Burhan Keskin <alikeskin@milvasoft.com>
+ */
 import React, { useState } from "react";
 import {
   Animated,
@@ -14,6 +11,21 @@ import {
   View,
 } from "react-native";
 
+// Components
+import CsCard from "@components/CsCard";
+import CsText from "@components/CsText";
+import { Ionicons } from "@expo/vector-icons";
+
+// Hooks
+import { useThemedStyles } from "@hooks/index";
+
+// Types
+import { ITheme } from "@styles/theme";
+
+// Styles
+import { spacing } from "@src/styles";
+
+// Interfaces
 interface Template {
   id: string;
   title: string;
@@ -29,6 +41,7 @@ interface NewConversationModalProps {
   modalTranslateY: Animated.AnimatedInterpolation<number>;
 }
 
+// Template Data
 const templates: Template[] = [
   {
     id: "1",
@@ -76,16 +89,21 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   animatedValue,
   modalTranslateY,
 }) => {
+  // Hooks
   const themedStyles = useThemedStyles<typeof styles>(styles);
+
+  // States
   const [selectedRecipient, setSelectedRecipient] = useState<
     "all" | "teacher" | "admin"
   >("all");
 
+  // Computed Data
   const filteredTemplates = templates.filter(
     (template) =>
       selectedRecipient === "all" || template.recipient === selectedRecipient
   );
 
+  // Main Render
   return (
     <Modal
       transparent={true}
@@ -168,6 +186,7 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   );
 };
 
+// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     modalContainer: {
@@ -181,7 +200,7 @@ const styles = (theme: ITheme) =>
       borderTopRightRadius: 20,
       padding: spacing.md,
       maxHeight: "80%",
-      flex: 1, // Add this line
+      flex: 1,
     },
     modalHeader: {
       flexDirection: "row",
