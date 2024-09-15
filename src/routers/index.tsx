@@ -66,7 +66,7 @@ function RootNavigation() {
       recheckAuth().then((r) => r);
       recheckAuthTriggered.current = true;
     } else if (isSignedIn && user && token) {
-      if (user && token) throttledSetPushToken(user.id, token);
+      if (!!user && token.length) throttledSetPushToken(user.id, token);
     }
 
     return () => {
