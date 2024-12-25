@@ -22,7 +22,7 @@ const Notification: React.FC = () => {
       registerForPushNotificationsAsync().then((token) =>
         dispatch(setExpoToken(token))
       );
-    } catch (error) {}
+    } catch {}
 
     // Notifications.addNotificationReceivedListener((notification) => {
     //   setNotification(notification);

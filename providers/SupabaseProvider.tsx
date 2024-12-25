@@ -6,7 +6,6 @@ import { Session } from "@supabase/supabase-js";
 import { SplashScreen } from "expo-router";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import {useAppSelector} from "@/store";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,8 +29,7 @@ export const useAuthCheck = () => useContext(SupabaseContext);
 
 export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
   const dispatch = useDispatch();
-  const { checkAuth, setPushToken } = useAuth();
-	const token = useAppSelector((s) => s?.AppReducer?.expoToken);
+  const { checkAuth } = useAuth();
 	const [userProvided, setUserProvided] = useState<IUserDTO | null>(null);
 	const [session, setSession] = useState<Session | null>(null);
 	const [initialized, setInitialized] = useState<boolean>(false);
@@ -49,14 +47,12 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
 
 		supabase.auth.onAuthStateChange(async (event, session) => {
 			setSession(session);
-			// TODO: setUser(session ? session.user : null);
-
-			if (event === 'SIGNED_IN') {
-				if (token) {
-					await setPushToken(session!.user.id, token)
-					console.log(`TOKEN: ${token} set for user ${session!.user.id}`)
-				}
-			}
+			// if (event === 'SIGNED_IN') {
+			// 	if (token) {
+			// 		await setPushToken(session!.user.id, token)
+			// 		console.log(`TOKEN: ${token} set for user ${session!.user.id}`)
+			// 	}
+			// }
 			// if (event === 'SIGNED_OUT') console.log('SIGNED_OUT');
 		});
 	}, []);
