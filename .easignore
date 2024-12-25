@@ -63,7 +63,6 @@ buck-out/
 .expo/*
 web-build/
 yeko-de87f-firebase-adminsdk-rkp3w-6ae3f538ad.json
-google-services.json
 
 # Platform
 android
