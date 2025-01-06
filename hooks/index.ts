@@ -8,3 +8,4 @@ export * from './useAttendance';
 export * from './useDataFetching';
 export * from './useHomework';
 export * from './useSchedule';
+export * from './useNote';

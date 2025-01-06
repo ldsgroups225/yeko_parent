@@ -10,7 +10,7 @@ import Animated, {
 import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard, getSchoolMonthIndex, TitleAndMonths } from "@/components";
 
 // Hooks
-import { useThemedStyles } from "@/hooks/index";
+import { useNote, useThemedStyles } from "@/hooks/index";
 import useDataFetching from "@/hooks/useDataFetching";
 
 // Types
@@ -24,77 +24,31 @@ import {
   groupBy,
   truncateText,
 } from "@/utils";
+import { useAppSelector } from "@/store";
+import { IGroupedNotesDTO, INoteDTO, INoteSummaryDTO } from "@/types/INoteDTO";
 
-// Interfaces
-interface Note {
-  id: string;
-  subjectId: string;
-  subjectName: string;
-  note: number;
-  date: Date;
-}
-
-interface GroupedNotes {
-  title: string;
-  average: number;
-  data: Note[];
-}
-
-interface NoteSummary {
-  averageNote: number;
-  bestSubject: string;
-  worstSubject: string;
-}
 
 const NoteScreen: React.FC = () => {
   // Hooks
+  const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
   const themedStyles = useThemedStyles<typeof styles>(styles);
+  const { getNotes } = useNote();
 
   // States
+  const [error, setError] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(
     getSchoolMonthIndex(new Date())
   );
 
   // Data Fetching
   const fetchNotes = useCallback(async () => {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // TODO: Replace with actual API call to fetch note data
-    const mockData: Note[] = [
-      {
-        id: "1",
-        subjectId: "1",
-        subjectName: "Mathématique",
-        note: 17,
-        date: new Date(2024, 2, 10),
-      },
-      {
-        id: "2",
-        subjectId: "1",
-        subjectName: "Mathématique",
-        note: 15,
-        date: new Date(2024, 2, 1),
-      },
-      {
-        id: "3",
-        subjectId: "2",
-        subjectName: "Français",
-        note: 14,
-        date: new Date(2024, 2, 11),
-      },
-      {
-        id: "4",
-        subjectId: "2",
-        subjectName: "Français",
-        note: 13,
-        date: new Date(2024, 2, 2),
-      },
-      // ... add more mock data as needed
-    ];
-
-    return mockData;
-  }, []);
+    try {
+      if (!selectedStudent) return [];
+      return await getNotes(selectedStudent.id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch notes');
+    }
+  }, [selectedStudent]);
 
   const {
     data: notes,
@@ -104,7 +58,7 @@ const NoteScreen: React.FC = () => {
   } = useDataFetching(fetchNotes, []);
 
   // Computed Data
-  const summary: NoteSummary = useMemo(() => {
+  const summary: INoteSummaryDTO = useMemo(() => {
     if (!notes || notes.length === 0)
       return { averageNote: 0, bestSubject: "", worstSubject: "" };
 
@@ -131,7 +85,7 @@ const NoteScreen: React.FC = () => {
     };
   }, [notes]);
 
-  const groupedNotes: GroupedNotes[] = useMemo(() => {
+  const groupedNotes: IGroupedNotesDTO[] = useMemo(() => {
     if (!notes) return [];
     const grouped = groupBy(notes, "subjectName");
     return Object.entries(grouped).map(([subject, subjectNotes]) => ({
@@ -165,7 +119,7 @@ const NoteScreen: React.FC = () => {
   // Callbacks
   const handleMonthChange = (month: number) => {
     setSelectedMonth(month);
-    // TODO: Fetch note data for the selected month (if needed)
+    // refetchData();
   };
 
   // Main Render
@@ -207,7 +161,7 @@ const NoteScreen: React.FC = () => {
 };
 
 // Subject Card Component
-const SubjectCard: React.FC<{ title: string; average: number; notes: Note[] }> =
+const SubjectCard: React.FC<{ title: string; average: number; notes: INoteDTO[] }> =
   React.memo(({ title, average, notes }) => {
     const themedStyles = useThemedStyles<typeof styles>(styles);
     const opacity = useSharedValue(0);
@@ -241,7 +195,7 @@ const SubjectCard: React.FC<{ title: string; average: number; notes: Note[] }> =
   });
 
 // Note Item Component
-const NoteItem: React.FC<{ note: Note }> = React.memo(({ note }) => {
+const NoteItem: React.FC<{ note: INoteDTO }> = React.memo(({ note }) => {
   const themedStyles = useThemedStyles<typeof styles>(styles);
   const formattedDate = formatDate(note.date, "d MMM");
 

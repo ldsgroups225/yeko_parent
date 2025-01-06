@@ -78,3 +78,8 @@ export const PARTICIPATION_TABLE_ID = "participations";
  * The ID of the collection storing Homework documents in the Supabase database.
  */
 export const HOMEWORK_TABLE_ID = "homeworks";
+
+/**
+ * The ID of the collection storing Note details documents in the Supabase database.
+ */
+export const NOTE_DETAILS_TABLE_ID = "note_details";

@@ -8,7 +8,7 @@ export default function DetailsLayout() {
 			<Stack.Screen name="discussionScreen" />
 			<Stack.Screen name="eventScreen" />
 			<Stack.Screen name="homeworkScreen" />
-			<Stack.Screen name="newConversationModal" />
+			{/* TODO: <Stack.Screen name="newConversationModal" /> */}
 			<Stack.Screen name="noteScreen" />
 			<Stack.Screen name="scheduleScreen" />
 		</Stack>
