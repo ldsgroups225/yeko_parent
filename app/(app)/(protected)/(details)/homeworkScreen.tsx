@@ -11,7 +11,7 @@ import Animated, {
 import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard, TitleAndMonths } from "@/components";
 
 // Hooks
-import { useThemedStyles, useHomework } from "@/hooks";
+import { useThemedStyles, useNote } from "@/hooks";
 import useDataFetching from "@/hooks/useDataFetching";
 import { useAppSelector } from "@/store";
 
@@ -23,6 +23,8 @@ import { type ITheme, shadows, spacing } from "@/styles";
 import { formatDate, groupBy } from "@/utils/index";
 import { Ionicons } from "@expo/vector-icons";
 import borderRadius from "@/styles/borderRadius";
+import { NOTE_TYPE } from "@/lib/supabase";
+import { INoteDTO } from "@/types/INoteDTO";
 
 // Helper Function
 const getSchoolMonthIndex = (date: Date): number => {
@@ -43,7 +45,7 @@ const HomeworkScreen: React.FC = () => {
   // Hooks and Redux
   const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
   const themedStyles = useThemedStyles<typeof styles>(styles);
-  const { getHomeworks } = useHomework();
+  const { getNotes } = useNote();
 
   // States
   const [selectedMonth, setSelectedMonth] = useState(
@@ -54,8 +56,8 @@ const HomeworkScreen: React.FC = () => {
   const fetchHomework = useCallback(async () => {
     if (!selectedStudent) return [];
 
-    return getHomeworks(selectedStudent.class.id);
-  }, [selectedStudent, getHomeworks]);
+    return await getNotes(selectedStudent.id, [NOTE_TYPE.HOMEWORK]);
+  }, [selectedStudent]);
 
   const {
     data: homeworks,
@@ -91,7 +93,7 @@ const HomeworkScreen: React.FC = () => {
   const groupedHomeworks = useMemo(() => {
     if (!homeworks) return [];
     const grouped = groupBy(homeworks, (hw) =>
-      formatDate(hw.dueDate, "yyyy-MM-dd")
+      formatDate(hw.dueDate!, "yyyy-MM-dd")
     );
     return Object.entries(grouped).map(([date, items]) => ({
       title: formatDate(new Date(date), "EEEE d MMMM yyyy"),
@@ -106,7 +108,7 @@ const HomeworkScreen: React.FC = () => {
   };
 
   const renderHomeworkItem = useCallback(
-    ({ item }: { item: IHomeworkDTO }) => <HomeworkItem homework={item} />,
+    ({ item }: { item: INoteDTO }) => <HomeworkItem homework={item} />,
     []
   );
 
@@ -168,7 +170,7 @@ const HomeworkScreen: React.FC = () => {
 };
 
 // Homework Item Component
-const HomeworkItem: React.FC<{ homework: IHomeworkDTO }> = React.memo(
+const HomeworkItem: React.FC<{ homework: INoteDTO }> = React.memo(
   ({ homework }) => {
     const themedStyles = useThemedStyles<typeof styles>(styles);
     const opacity = useSharedValue(0);
@@ -186,7 +188,7 @@ const HomeworkItem: React.FC<{ homework: IHomeworkDTO }> = React.memo(
       <Animated.View style={[themedStyles.homeworkItem, animatedStyle]}>
         <CsCard style={themedStyles.homeworkCard}>
           <View style={themedStyles.homeworkHeader}>
-            <CsText variant="h3">{homework.subject}</CsText>
+            <CsText variant="h3">{homework.subjectName}</CsText>
             {homework.isGraded && (
               <View style={themedStyles.gradeBadge}>
                 <CsText variant="caption" style={themedStyles.gradeBadgeText}>
@@ -202,7 +204,7 @@ const HomeworkItem: React.FC<{ homework: IHomeworkDTO }> = React.memo(
               color={themedStyles.icon.color}
             />
             <CsText variant="body" style={themedStyles.dueDate}>
-              À rendre le {formatDate(homework.dueDate, "d MMMM")}
+              À rendre le {formatDate(homework.dueDate!, "d MMMM")}
             </CsText>
           </View>
         </CsCard>

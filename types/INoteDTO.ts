@@ -4,6 +4,8 @@ export interface INoteDTO {
   subjectName: string;
   note: number;
   date: Date;
+  dueDate: Date | null;
+  isGraded: boolean;
 }
 
 export interface IGroupedNotesDTO  {

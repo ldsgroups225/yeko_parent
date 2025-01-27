@@ -1,4 +1,5 @@
 {
+  "cSpell.language": "en, fr",
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },

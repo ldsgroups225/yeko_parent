@@ -1,5 +1,5 @@
 import { INoteDTO } from "@/types/INoteDTO";
-import { NOTE_DETAILS_TABLE_ID, NOTE_TYPE, supabase } from "@/lib/supabase";
+import { NOTE_TYPE, supabase } from "@/lib/supabase";
 
 export const note = {
   async getNotes(studentId: string, noteType: NOTE_TYPE[]): Promise<INoteDTO[]> {
@@ -44,9 +44,11 @@ export const note = {
         subjectName: noteDetail.notes.subjects.name,
         note: noteDetail.note ?? 0,
         date: new Date(noteDetail.notes.created_at),
-        dueDate:  noteDetail.notes.due_date && new Date(noteDetail.notes.due_date),
+        dueDate:  noteDetail.notes.due_date
+        ? new Date(noteDetail.notes.due_date)
+        : null,
         isGraded: noteDetail.notes.is_graded
-      }));
+      } satisfies INoteDTO));
     } catch (error) {
       console.error("Error getting note records:", error);
       throw error;
