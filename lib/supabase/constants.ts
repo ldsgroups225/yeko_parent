@@ -1,3 +1,5 @@
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+
 /**
  * The endpoint URL for the Supabase server.
  * This is the base URL used for all Supabase API requests.
@@ -83,3 +85,24 @@ export const HOMEWORK_TABLE_ID = "homeworks";
  * The ID of the collection storing Note details documents in the Supabase database.
  */
 export const NOTE_DETAILS_TABLE_ID = "note_details";
+
+
+export const NOTE_OPTIONS = [
+  { label: 'Interrogation écrite', value: 'WRITING_QUESTION' },
+  { label: 'Devoir de classe', value: 'CLASS_TEST' },
+  { label: 'Devoir de niveau', value: 'LEVEL_TEST' },
+  { label: 'Exercice de maison', value: 'HOMEWORK' },
+  { label: 'Participation', value: 'PARTICIPATION' }
+];
+
+export enum NOTE_TYPE {
+  WRITING_QUESTION = 'WRITING_QUESTION',
+  CLASS_TEST = 'CLASS_TEST',
+  LEVEL_TEST = 'LEVEL_TEST',
+  HOMEWORK = 'HOMEWORK',
+  PARTICIPATION = 'PARTICIPATION'
+}
+
+const isParticipation = (noteType: NOTE_TYPE) => noteType === 'PARTICIPATION';
+const isHomework = (noteType: NOTE_TYPE) => noteType === 'HOMEWORK';
+const isTest = (noteType: NOTE_TYPE) => !isParticipation(noteType) && !isHomework(noteType);

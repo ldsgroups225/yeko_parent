@@ -26,6 +26,7 @@ import {
 } from "@/utils";
 import { useAppSelector } from "@/store";
 import { IGroupedNotesDTO, INoteDTO, INoteSummaryDTO } from "@/types/INoteDTO";
+import { NOTE_TYPE } from "@/lib/supabase";
 
 
 const NoteScreen: React.FC = () => {
@@ -44,7 +45,10 @@ const NoteScreen: React.FC = () => {
   const fetchNotes = useCallback(async () => {
     try {
       if (!selectedStudent) return [];
-      return await getNotes(selectedStudent.id)
+      return await getNotes(
+        selectedStudent.id,
+        [NOTE_TYPE.WRITING_QUESTION, NOTE_TYPE.CLASS_TEST, NOTE_TYPE.LEVEL_TEST],
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notes');
     }

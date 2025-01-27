@@ -1,9 +1,10 @@
+import { NOTE_TYPE } from "@/lib/supabase";
 import { note } from "@/services/noteService";
 import { INoteDTO } from "@/types/INoteDTO";
 import { useState } from "react";
 
 interface UseNoteReturn {
-  getNotes: (studentId: string) => Promise<INoteDTO[] | null>;
+  getNotes: (studentId: string, noteType: NOTE_TYPE[]) => Promise<INoteDTO[] | null>;
   loading: boolean;
   error: string | null;
 }
@@ -13,12 +14,13 @@ export const useNote = (): UseNoteReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const getNotes = async (
-    studentId: string
+    studentId: string,
+    noteType: NOTE_TYPE[],
   ): Promise<INoteDTO[]> => {
     setLoading(true);
     setError(null);
     try {
-      return await note.getNotes(studentId);
+      return await note.getNotes(studentId, noteType);
     } catch (err) {
       setError("Failed to get note records.");
       console.error("[E_GET_NOTES]:", err);
