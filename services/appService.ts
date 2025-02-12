@@ -54,7 +54,7 @@ export const auth = {
 
       // create it role
       const newRoleResponse = await supabase.from("user_roles").insert({
-        user_id: newAccountResponse.data.user?.id,
+        user_id: newAccountResponse.data.user!.id,
         role_id: ERole.PARENT,
       });
 

@@ -31,7 +31,7 @@ export const note = {
             .in('note_type', noteType)
         }
   
-      const { data, error } = await query;
+      const { data, error } = await query.order('due_date', { ascending: false });
   
       if (error) throw new Error(error.message);
   

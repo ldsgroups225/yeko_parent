@@ -1,4 +1,4 @@
-import { IAttendanceDTO } from "@/types/IAttendanceDTO";
+import { AttendanceStatus, IAttendanceDTO } from "@/types/IAttendanceDTO";
 import { ATTENDANCE_TABLE_ID, supabase } from "@/lib/supabase";
 
 export const attendance = {
@@ -16,10 +16,10 @@ export const attendance = {
 
       return {
         id: data.id,
-        status: data.status,
+        status: data.status as AttendanceStatus,
         isExcused: data.is_excused,
         subject: (data.subjects as unknown as { name: string }).name,
-        date: data.created_at,
+        date: data.created_at!,
         startTime: data.starts_at,
         endTime: data.ends_at,
       };
@@ -42,8 +42,8 @@ export const attendance = {
 
       return data.map((document) => ({
         id: document.id,
-        date: document.created_at,
-        status: document.status,
+        date: document.created_at!,
+        status: document.status as AttendanceStatus,
         isExcused: document.is_excused,
         subject: (document.subjects as unknown as { name: string }).name,
         startTime: document.starts_at,
