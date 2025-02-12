@@ -11,6 +11,7 @@ export default function DetailsLayout() {
 			{/* TODO: <Stack.Screen name="newConversationModal" /> */}
 			<Stack.Screen name="noteScreen" />
 			<Stack.Screen name="scheduleScreen" />
+			<Stack.Screen name="feedbackScreen" />
 		</Stack>
 	);
 }

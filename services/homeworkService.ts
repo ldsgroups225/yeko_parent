@@ -15,7 +15,7 @@ export const homework = {
       return {
         id: data.id,
         subject: (data.subjects as unknown as { name: string }).name,
-        dueDate: data.due_date,
+        dueDate: new Date(data.due_date),
         isGraded: data.is_graded,
       };
     } catch (error) {
@@ -39,7 +39,7 @@ export const homework = {
       return data.map((document) => ({
         id: document.id,
         subject: (document.subjects as unknown as { name: string }).name,
-        dueDate: document.due_date,
+        dueDate: new Date(document.due_date),
         isGraded: document.is_graded,
       }));
     } catch (error) {

@@ -26,6 +26,7 @@ import { spacing } from "@/styles";
 import borderRadius from "@/styles/borderRadius";
 import { formatFullName } from "@/utils/formatting";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 // Language Item Interface
 interface ILanguageItemProps {
@@ -133,6 +134,17 @@ const ProfileScreen: React.FC = () => {
             />
           }
         />
+
+        {/* Feedback Setting */}
+        <CsListTile
+          // title={translate("feedback")}
+          title="Retour d'information"
+          trailing={
+            <Ionicons name="chevron-forward" size={24} color={theme.gray600} />
+          }
+          onPress={() => router.push("/(app)/(protected)/(details)/feedbackScreen")}
+        />
+
       </CsCard>
 
       {/* Logout Button */}

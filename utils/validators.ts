@@ -1,4 +1,5 @@
 import { AttendanceStatus } from "@/types/IAttendanceDTO";
+import { z } from "zod";
 
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,3 +21,13 @@ export function isValidAttendanceStatus(
 export function isValidName(name: string): boolean {
   return name.length >= 2 && name.length <= 50;
 }
+
+
+export const FeedbackTypeEnum = z.enum(["bug", "recommendation"]);
+export const FeedbackSchema = z.object({
+  feedbackType: FeedbackTypeEnum,
+  message: z.string().min(1, "Message requis"),
+  userEmail: z.string().email().optional().nullable(),
+});
+
+export type FeedbackFormValues = z.infer<typeof FeedbackSchema>;

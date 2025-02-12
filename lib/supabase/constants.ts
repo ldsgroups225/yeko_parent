@@ -82,6 +82,11 @@ export const PARTICIPATION_TABLE_ID = "participations";
 export const HOMEWORK_TABLE_ID = "homeworks";
 
 /**
+ * The ID of the collection storing Feedback documents in the Supabase database.
+ */
+export const FEEDBACK_TABLE_ID = "feedback";
+
+/**
  * The ID of the collection storing Note details documents in the Supabase database.
  */
 export const NOTE_DETAILS_TABLE_ID = "note_details";
