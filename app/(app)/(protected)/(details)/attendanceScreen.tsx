@@ -33,9 +33,7 @@ const AttendanceScreen: React.FC = () => {
   const { getAttendances } = useAttendance();
 
   // States
-  const [selectedMonth, setSelectedMonth] = useState(
-    getSchoolMonthIndex(new Date())
-  );
+  const [selectedMonth, setSelectedMonth] = useState<number | undefined>();
 
   // Data Fetching
   const fetchAttendances = useCallback(async () => {
@@ -97,8 +95,11 @@ const AttendanceScreen: React.FC = () => {
 
   // Callbacks
   const handleMonthChange = (month: number) => {
-    setSelectedMonth(month);
-    // TODO: Fetch attendance data for the selected month (if needed)
+    if (selectedMonth && month === selectedMonth) {
+      setSelectedMonth(undefined);
+    } else {
+      setSelectedMonth(month);
+    }
   };
 
   const renderAttendanceItem = useCallback(
@@ -117,7 +118,7 @@ const AttendanceScreen: React.FC = () => {
     <View style={themedStyles.container}>
       <TitleAndMonths
         title="Ponctualité"
-        defaultSelectedMonth={selectedMonth}
+        selectedMonth={selectedMonth}
         onMonthChange={handleMonthChange}
       />
       <AnimatedFlatList

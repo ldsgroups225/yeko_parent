@@ -1,6 +1,6 @@
 
 import React, { useCallback, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -25,6 +25,9 @@ import { Ionicons } from "@expo/vector-icons";
 import borderRadius from "@/styles/borderRadius";
 import { NOTE_TYPE } from "@/lib/supabase";
 import { INoteDTO } from "@/types/INoteDTO";
+import { ISemester } from "@/types/ISchoolYearDTO";
+import { FlatList } from "react-native";
+import { Pressable } from "react-native";
 
 // Helper Function
 const getSchoolMonthIndex = (date: Date): number => {
@@ -43,21 +46,29 @@ const getSchoolMonthIndex = (date: Date): number => {
 
 const HomeworkScreen: React.FC = () => {
   // Hooks and Redux
+  const semesters = useAppSelector((s) => s?.AppReducer?.semesters);
+  const currentSchoolYear = useAppSelector((s) => s?.AppReducer?.currentSchoolYear);
   const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
+
   const themedStyles = useThemedStyles<typeof styles>(styles);
   const { getNotes } = useNote();
 
   // States
-  const [selectedMonth, setSelectedMonth] = useState(
-    getSchoolMonthIndex(new Date())
-  );
+  const [selectedSemester, setSelectedSemester] = useState<ISemester>();
+  const [selectedMonth, setSelectedMonth] = useState<number | undefined>();
 
   // Data Fetching
   const fetchHomework = useCallback(async () => {
     if (!selectedStudent) return [];
 
-    return await getNotes(selectedStudent.id, [NOTE_TYPE.HOMEWORK]);
-  }, [selectedStudent]);
+    return await getNotes(
+      selectedStudent.id,
+      [NOTE_TYPE.HOMEWORK],
+      currentSchoolYear!.id,
+      selectedSemester?.id,
+      selectedMonth,
+    );
+  }, [selectedStudent, selectedSemester, selectedMonth]);
 
   const {
     data: homeworks,
@@ -103,8 +114,11 @@ const HomeworkScreen: React.FC = () => {
 
   // Callbacks
   const handleMonthChange = (month: number) => {
-    setSelectedMonth(month);
-    // TODO: Fetch homework data for the selected month (if needed)
+    if (selectedMonth && month === selectedMonth) {
+      setSelectedMonth(undefined);
+    } else {
+      setSelectedMonth(month);
+    }
   };
 
   const renderHomeworkItem = useCallback(
@@ -136,9 +150,43 @@ const HomeworkScreen: React.FC = () => {
     <View style={themedStyles.container}>
       <TitleAndMonths
         title="Devoirs"
-        defaultSelectedMonth={selectedMonth}
+        selectedMonth={selectedMonth}
         onMonthChange={handleMonthChange}
       />
+
+      <View>
+        <Text style={{ fontSize: 14, paddingHorizontal: 20 }}>Filter par trimestre</Text>
+        <FlatList
+          data={semesters}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ columnGap: 10, paddingVertical: 4, paddingHorizontal: 20 }}
+          renderItem={({ item }) => (
+            <Pressable
+              style={[
+                themedStyles.semesterButton,
+                selectedSemester?.id === item.id && themedStyles.selectedSemesterButton,
+              ]}
+              onPress={() => {
+                if (selectedSemester?.id === item.id) setSelectedSemester(undefined);
+                else setSelectedSemester(item);
+              }}
+            >
+              <CsText
+                style={StyleSheet.flatten([
+                  themedStyles.semesterButtonText,
+                  selectedSemester?.id === item.id &&
+                    themedStyles.selectedSemesterButtonText,
+                ])}
+              >
+                {item.name}
+              </CsText>
+            </Pressable>
+          )}
+        />
+      </View>
+
       <AnimatedFlatList
         style={themedStyles.homeworkList}
         data={groupedHomeworks}
@@ -321,6 +369,25 @@ const styles = (theme: ITheme) =>
     },
     primary: {
       color: theme.primary,
+    },
+    semesterButton: {
+      borderRadius: 8,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    semesterButtonText: {
+      color: theme.text,
+    },
+    selectedSemesterButton: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+      borderRadius: 8,
+    },
+    selectedSemesterButtonText: {
+      color: theme.background,
+      fontWeight: "semibold",
     },
     success: { color: "#4CAF50" },
     warning: { color: "#FFA500" },

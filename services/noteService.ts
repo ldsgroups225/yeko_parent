@@ -2,7 +2,7 @@ import { INoteDTO } from "@/types/INoteDTO";
 import { NOTE_TYPE, supabase } from "@/lib/supabase";
 
 export const note = {
-  async getNotes(studentId: string, noteType: NOTE_TYPE[], schoolYearId: number, semesterId?: number): Promise<INoteDTO[]> {
+  async getNotes(studentId: string, noteType: NOTE_TYPE[], schoolYearId: number, semesterId?: number, month?: number): Promise<INoteDTO[]> {
     const isHomework = noteType.length === 1 && noteType[0] === NOTE_TYPE.HOMEWORK;
 
     try {
@@ -29,8 +29,12 @@ export const note = {
             .in('note_type', noteType)
         }
 
-        if (semesterId) {
+        if (semesterId && !month) {
           query = query.eq('semester_id', semesterId)
+        }
+
+        if (month) {
+          query = query.gte('due_date', new Date(schoolYearId, month - 1, 1)).lte('due_date', new Date(schoolYearId, month, 0))
         }
   
       const { data, error } = await query.order('due_date', { ascending: false });

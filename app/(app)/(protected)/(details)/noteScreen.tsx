@@ -34,7 +34,7 @@ const NoteScreen: React.FC = () => {
   // Hooks
   const { getNotes } = useNote();
   const themedStyles = useThemedStyles<typeof styles>(styles);
-  
+
   const semesters = useAppSelector((s) => s?.AppReducer?.semesters);
   const currentSchoolYear = useAppSelector((s) => s?.AppReducer?.currentSchoolYear);
   const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
@@ -42,9 +42,7 @@ const NoteScreen: React.FC = () => {
   // States
   const [error, setError] = useState<string | null>(null);
   const [selectedSemester, setSelectedSemester] = useState<ISemester>();
-  const [selectedMonth, setSelectedMonth] = useState(
-    getSchoolMonthIndex(new Date())
-  );
+  const [selectedMonth, setSelectedMonth] = useState<number>();
 
   // Data Fetching
   const fetchNotes = useCallback(async () => {
@@ -55,11 +53,12 @@ const NoteScreen: React.FC = () => {
         [NOTE_TYPE.WRITING_QUESTION, NOTE_TYPE.CLASS_TEST, NOTE_TYPE.LEVEL_TEST],
         currentSchoolYear!.id,
         selectedSemester?.id,
+        selectedMonth,
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notes');
     }
-  }, [selectedStudent, selectedSemester]);
+  }, [selectedStudent, selectedSemester, selectedMonth]);
 
   const {
     data: notes,
@@ -129,8 +128,11 @@ const NoteScreen: React.FC = () => {
 
   // Callbacks
   const handleMonthChange = (month: number) => {
-    setSelectedMonth(month);
-    // refetchData();
+    if (selectedMonth && month === selectedMonth) {
+      setSelectedMonth(undefined);
+    } else {
+      setSelectedMonth(month);
+    }
   };
 
   // Main Render
@@ -142,7 +144,7 @@ const NoteScreen: React.FC = () => {
     <View style={themedStyles.container}>
       <TitleAndMonths
         title="Notes et moyennes"
-        defaultSelectedMonth={selectedMonth}
+        selectedMonth={selectedMonth}
         onMonthChange={handleMonthChange}
       />
 

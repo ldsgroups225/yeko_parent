@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import CsText from "./CsText";
 import { ITheme } from "@/styles";
@@ -23,7 +22,7 @@ const SCHOOL_MONTHS = [
 
 interface TitleAndMonthsProps {
   title: string;
-  defaultSelectedMonth?: number;
+  selectedMonth?: number;
   onMonthChange: (month: number) => void;
   customMonths?: readonly string[];
 }
@@ -37,21 +36,14 @@ export const getSchoolMonthIndex = (date: Date): number => {
 
 const TitleAndMonths: React.FC<TitleAndMonthsProps> = ({
   title,
-  defaultSelectedMonth,
+  selectedMonth,
   onMonthChange,
   customMonths = SCHOOL_MONTHS,
 }) => {
-  const [activeMonth, setActiveMonth] = useState(
-    defaultSelectedMonth ?? getSchoolMonthIndex(new Date())
-  );
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
-  useEffect(() => {
-    onMonthChange(activeMonth);
-  }, [activeMonth, onMonthChange]);
-
   const handleMonthPress = (index: number) => {
-    setActiveMonth(index);
+    onMonthChange(index);
   };
 
   return (
@@ -63,14 +55,14 @@ const TitleAndMonths: React.FC<TitleAndMonthsProps> = ({
             key={month}
             style={[
               themedStyles.monthButton,
-              activeMonth === index && themedStyles.activeMonthButton,
+              selectedMonth === index && themedStyles.activeMonthButton,
             ]}
             onPress={() => handleMonthPress(index)}
           >
             <CsText
               style={StyleSheet.flatten([
                 themedStyles.monthButtonText,
-                activeMonth === index && themedStyles.activeMonthButtonText,
+                selectedMonth === index && themedStyles.activeMonthButtonText,
               ])}
             >
               {month}
