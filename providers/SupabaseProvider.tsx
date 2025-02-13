@@ -1,11 +1,12 @@
-import { useAuth } from "@/hooks";
+import { useAuth, useSchoolYear } from "@/hooks";
+import { useDispatch } from "react-redux";
 import { supabase } from "@/lib/supabase";
 import { setUser } from "@/store/appSlice";
+import { SplashScreen } from "expo-router";
 import { IUserDTO } from "@/types/ILoginDTO";
 import { Session } from "@supabase/supabase-js";
-import { SplashScreen } from "expo-router";
+import { setCurrentSchoolYearAndSemesters} from "@/store/appSlice";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,9 +31,26 @@ export const useAuthCheck = () => useContext(SupabaseContext);
 export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
   const dispatch = useDispatch();
   const { checkAuth } = useAuth();
+  const { getSchoolYears, getSemesters } = useSchoolYear();
+
 	const [userProvided, setUserProvided] = useState<IUserDTO | null>(null);
 	const [session, setSession] = useState<Session | null>(null);
 	const [initialized, setInitialized] = useState<boolean>(false);
+
+	async function fetchSchoolYears() {
+    // Fetch school years
+    const schoolYears = await getSchoolYears();
+
+    if (!schoolYears) return;
+
+    // Fetch semesters
+    const semesters = await getSemesters(schoolYears[0].id);
+
+    if (!semesters) return;
+
+    // Set school years and semesters
+    dispatch(setCurrentSchoolYearAndSemesters({ schoolYears, semesters }));
+  }
 
 	useEffect(() => {
 		checkAuth().then(r => {
@@ -41,6 +59,8 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
       if (r && r?.user) {
 				dispatch(setUser(r.user));
 			}
+
+			fetchSchoolYears().then(r => r);
 		}).finally(() => {
 			setInitialized(true);
 		});

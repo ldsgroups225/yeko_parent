@@ -18,7 +18,7 @@ import {useAuth, useTheme, useThemedStyles} from "@/hooks/index";
 import { useAppSelector } from "@/store";
 
 // Redux
-import {loggedOut, setExpoToken, setSelectedStudent} from "@/store/appSlice";
+import {loggedOut, setSelectedStudent} from "@/store/appSlice";
 
 // Types
 import { type ITheme, spacing } from "@/styles";
@@ -41,13 +41,14 @@ import { useRouter } from "expo-router";
 
 const Home: React.FC = () => {
   // Hooks and Redux
+  const theme = useTheme();
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { setPushToken } = useAuth();
+  const themedStyles = useThemedStyles<typeof styles>(styles);
+
   const user = useAppSelector((s) => s?.AppReducer?.user);
   const token = useAppSelector((s) => s?.AppReducer?.expoToken);
-  const theme = useTheme();
-  const dispatch = useDispatch();
-  const router = useRouter()
-  const { setPushToken } = useAuth()
-  const themedStyles = useThemedStyles<typeof styles>(styles);
 
   // States
   const [isPopoverVisible, setPopoverVisible] = useState(false);

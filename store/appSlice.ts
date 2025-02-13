@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ColorSchemeName } from "react-native";
 import { IAppState, ProfileCompletion } from "./IAppState";
+import { ISchoolYear, ISemester } from "@/types/ISchoolYearDTO";
 
 /**
  * Initial state for the app slice.
@@ -24,6 +25,10 @@ const initialState: IAppState = {
     grade: "",
     referral: "",
   },
+  schoolYears: [],
+  semesters: [],
+  currentSemester: null,
+  currentSchoolYear: null
 };
 
 /**
@@ -126,6 +131,22 @@ const appSlice = createSlice({
         ...action.payload,
       };
     },
+
+    /**
+     * Set the current school year and semesters.
+     */
+    setCurrentSchoolYearAndSemesters(
+      state: IAppState,
+      action: PayloadAction<{ schoolYears: ISchoolYear[]; semesters: ISemester[] }>
+    ) {
+      state.schoolYears = action.payload.schoolYears;
+      state.semesters = action.payload.semesters;
+
+      state.currentSchoolYear = action.payload.schoolYears[0];
+      state.currentSemester = action.payload.semesters.find(
+        (semester) => semester.isCurrent
+      ) ?? null;
+    },
   },
 });
 
@@ -139,6 +160,7 @@ export const {
   setAuthToken,
   setExpoToken,
   setProfileCompletion,
+  setCurrentSchoolYearAndSemesters,
 } = appSlice.actions;
 
 export default appSlice.reducer;

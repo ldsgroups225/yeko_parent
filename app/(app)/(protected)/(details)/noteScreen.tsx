@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -27,16 +27,21 @@ import {
 import { useAppSelector } from "@/store";
 import { IGroupedNotesDTO, INoteDTO, INoteSummaryDTO } from "@/types/INoteDTO";
 import { NOTE_TYPE } from "@/lib/supabase";
-
+import { FlatList } from "react-native";
+import { ISemester } from "@/types/ISchoolYearDTO";
 
 const NoteScreen: React.FC = () => {
   // Hooks
-  const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
-  const themedStyles = useThemedStyles<typeof styles>(styles);
   const { getNotes } = useNote();
+  const themedStyles = useThemedStyles<typeof styles>(styles);
+  
+  const semesters = useAppSelector((s) => s?.AppReducer?.semesters);
+  const currentSchoolYear = useAppSelector((s) => s?.AppReducer?.currentSchoolYear);
+  const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
 
   // States
   const [error, setError] = useState<string | null>(null);
+  const [selectedSemester, setSelectedSemester] = useState<ISemester>();
   const [selectedMonth, setSelectedMonth] = useState(
     getSchoolMonthIndex(new Date())
   );
@@ -48,11 +53,13 @@ const NoteScreen: React.FC = () => {
       return await getNotes(
         selectedStudent.id,
         [NOTE_TYPE.WRITING_QUESTION, NOTE_TYPE.CLASS_TEST, NOTE_TYPE.LEVEL_TEST],
+        currentSchoolYear!.id,
+        selectedSemester?.id,
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notes');
     }
-  }, [selectedStudent]);
+  }, [selectedStudent, selectedSemester]);
 
   const {
     data: notes,
@@ -138,6 +145,40 @@ const NoteScreen: React.FC = () => {
         defaultSelectedMonth={selectedMonth}
         onMonthChange={handleMonthChange}
       />
+
+      <View>
+        <Text style={{ fontSize: 14, paddingHorizontal: 20 }}>Filter par trimestre</Text>
+        <FlatList
+          data={semesters}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ columnGap: 10, paddingVertical: 4, paddingHorizontal: 20 }}
+          renderItem={({ item }) => (
+            <Pressable
+              style={[
+                themedStyles.semesterButton,
+                selectedSemester?.id === item.id && themedStyles.selectedSemesterButton,
+              ]}
+              onPress={() => {
+                if (selectedSemester?.id === item.id) setSelectedSemester(undefined);
+                else setSelectedSemester(item);
+              }}
+            >
+              <CsText
+                style={StyleSheet.flatten([
+                  themedStyles.semesterButtonText,
+                  selectedSemester?.id === item.id &&
+                    themedStyles.selectedSemesterButtonText,
+                ])}
+              >
+                {item.name}
+              </CsText>
+            </Pressable>
+          )}
+        />
+      </View>
+
       <AnimatedFlatList
         style={themedStyles.notesList}
         data={groupedNotes}
@@ -312,6 +353,25 @@ const styles = (theme: ITheme) =>
     },
     noteValue: {
       fontWeight: "bold",
+    },
+    semesterButton: {
+      borderRadius: 8,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    semesterButtonText: {
+      color: theme.text,
+    },
+    selectedSemesterButton: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+      borderRadius: 8,
+    },
+    selectedSemesterButtonText: {
+      color: theme.background,
+      fontWeight: "semibold",
     },
     excellentNote: { color: "#4CAF50" },
     goodNote: { color: "#2196F3" },

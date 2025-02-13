@@ -1,5 +1,6 @@
 import { ColorSchemeName } from "react-native";
 import { IStudentDTO, IUserDTO } from "../types/ILoginDTO";
+import { ISchoolYear, ISemester } from "@/types/ISchoolYearDTO";
 
 export interface ProfileCompletion {
   currentStep: number;
@@ -22,4 +23,9 @@ export interface IAppState {
   authToken: string | undefined;
   expoToken: string | undefined;
   profileCompletion: ProfileCompletion;
+
+  schoolYears: ISchoolYear[]
+  semesters: ISemester[]
+  currentSemester: ISemester | null
+  currentSchoolYear: ISchoolYear | null
 }

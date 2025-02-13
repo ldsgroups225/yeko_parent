@@ -88,7 +88,7 @@ export const useAuth = (): useAuthReturn => {
           lastName: userData.last_name || "",
           phone: userData.phone || "",
           pushToken: userData.push_token || "",
-          children: studentsData.slice(0, 10).map((s: IUserResponse) => ({
+          children: studentsData!.slice(0, 10).map((s: IUserResponse) => ({
             id: s.student_id || "",
             firstName: s.first_name || "",
             lastName: s.last_name || "",
