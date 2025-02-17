@@ -4,7 +4,7 @@ export default function DetailsLayout() {
 	return (
 		<Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
 			<Stack.Screen name="attendanceScreen" />
-			<Stack.Screen name="conversationDetailScreen" />
+			<Stack.Screen name="[chatId]" />
 			<Stack.Screen name="discussionScreen" />
 			<Stack.Screen name="eventScreen" />
 			<Stack.Screen name="homeworkScreen" />

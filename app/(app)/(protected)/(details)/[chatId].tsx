@@ -1,3 +1,5 @@
+// app/(app)/(protected)/(details)/[chatId].tsx
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -9,31 +11,21 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
 // Components
 import { Ionicons } from "@expo/vector-icons";
 import { CsText, CsCard } from "@/components";
 
 // Hooks
-import { useThemedStyles } from "@/hooks";
+import { useChat, useThemedStyles } from "@/hooks";
 
 // Types and Styles
 import { type ITheme, shadows, spacing  } from "@/styles";
-
-// Navigation Types
-type RootStackParamList = {
-  ConversationDetail: {
-    templateId: string;
-    templateTitle: string;
-    recipient: "teacher" | "admin";
-  };
-};
-
-type ConversationDetailRouteProp = RouteProp<
-  RootStackParamList,
-  "ConversationDetail"
->;
+import { Chat, Conversation } from "@/services";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useAppSelector } from "@/store";
+import { showToast } from "@/helpers/toast/showToast";
+import { supabase } from "@/lib/supabase";
 
 // Message Interface
 interface Message {
@@ -45,13 +37,16 @@ interface Message {
 
 const ConversationDetailScreen: React.FC = () => {
   // Hooks and Navigation
-  const navigation = useNavigation();
-  const route = useRoute<ConversationDetailRouteProp>();
-  const { templateId, templateTitle, recipient } = route.params;
+  const router = useRouter();
   const themedStyles = useThemedStyles<typeof styles>(styles);
+
+  const user = useAppSelector((s) => s?.AppReducer?.user);
+  const { chatId } = useLocalSearchParams<{ chatId: string }>();
+  const { getMessages, createMessage } = useChat();
 
   // States
   const [messages, setMessages] = useState<Message[]>([]);
+  const [chat, setChat] = useState<{ messageCount: number; title: string, status: 'active' | 'ended' | 'archived' } | null>(null);
   const [inputText, setInputText] = useState("");
 
   // Refs
@@ -60,23 +55,21 @@ const ConversationDetailScreen: React.FC = () => {
 
   // Effects
   useEffect(() => {
-    // Simulate loading initial messages
-    const initialMessages: Message[] = [
-      {
-        id: "1",
-        text: `Bonjour, je voudrais discuter de ${templateTitle.toLowerCase()}.`,
-        sender: "user",
-        timestamp: new Date(Date.now() - 60000),
-      },
-      {
-        id: "2",
-        text: `Bien sûr, je suis là pour vous aider concernant ${templateTitle.toLowerCase()}. Que puis-je faire pour vous ?`,
-        sender: "other",
-        timestamp: new Date(),
-      },
-    ];
-    setMessages(initialMessages);
-  }, [templateTitle]);
+    if (user === null) return;
+
+    const loadMessages = async () => {
+      try {
+        const result = await getMessages({ userId: user!.id, chatId });
+
+        setChat({ messageCount: result.messageCount, title: result.title, status: result.status });
+        setMessages(result.messages);
+      } catch (error) {
+        showToast((error as Error).message);
+      }
+    };
+
+    loadMessages();
+  }, [chatId]);
 
   useEffect(() => {
     // Scroll to end and fade in new message when messages array updates
@@ -91,30 +84,57 @@ const ConversationDetailScreen: React.FC = () => {
   }, [messages, fadeAnim]);
 
   // Callbacks
-  const sendMessage = () => {
-    if (inputText.trim() === "") return;
+  const sendMessage = async () => {
+    if (!inputText.trim()) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText.trim(),
-      sender: "user",
-      timestamp: new Date(),
-    };
+    try {
+      // Check message limit
+      if (chat!.messageCount >= 10) {
+        alert('Vous avez atteint le nombre maximum de messages par chat. (10 max)');
+        return;
+      }
+      await createMessage({
+        chatId,
+        senderId: user!.id,
+        content: inputText.trim()
+      });
 
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-    setInputText("");
-
-    // Simulate receiving a response
-    setTimeout(() => {
-      const responseMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "Merci pour votre message. Je vais l'examiner et vous répondre dans les plus brefs délais.",
-        sender: "other",
-        timestamp: new Date(),
-      };
-      setMessages((prevMessages) => [...prevMessages, responseMessage]);
-    }, 1000);
+      setInputText('');
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          sender: 'user',
+          text: inputText.trim(),
+          timestamp: new Date()
+        },
+      ])
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
+
+  // Add real-time listener
+  useEffect(() => {
+    const channel = supabase
+      .channel('messages')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `chat_id=eq.${chatId}`
+      }, (payload) => {
+        const newMessage = payload.new as Message;
+        if (newMessage.sender !== user!.id) {
+          setMessages(prev => [...prev, newMessage]);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [chatId, supabase, user]);
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isLastMessage = index === messages.length - 1;
@@ -149,24 +169,42 @@ const ConversationDetailScreen: React.FC = () => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
       <View style={themedStyles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons
             name="arrow-back"
             size={24}
             color={themedStyles.headerText.color}
           />
         </TouchableOpacity>
-        <CsText style={themedStyles.headerText}>{templateTitle}</CsText>
+        <CsText style={themedStyles.headerText}>
+          {10 - (chat?.messageCount ?? 0)}
+          {' '}
+          messages restants
+        </CsText>
         <CsText style={themedStyles.recipientText}>
-          {recipient === "teacher" ? "Professeur" : "Administration"}
+          {/* {cha === "teacher" ? "Professeur" : "Administration"} */}
         </CsText>
       </View>
       <FlatList
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
+        ListFooterComponent={() => {
+          if (chat?.status === 'ended') {
+            return (
+              <CsCard style={themedStyles.endedChat}>
+                <CsText>
+                  Vous avez atteint le nombre maximum de messages par chat. (10 max)
+                </CsText>
+              </CsCard>
+            );
+          } else {
+            return null;
+          }
+        }}
         keyExtractor={(item) => item.id}
         contentContainerStyle={themedStyles.messageList}
+        showsVerticalScrollIndicator={false}
       />
       <View style={themedStyles.inputContainer}>
         <TextInput
@@ -175,8 +213,9 @@ const ConversationDetailScreen: React.FC = () => {
           onChangeText={setInputText}
           placeholder="Tapez votre message..."
           placeholderTextColor={themedStyles.inputPlaceholder.color}
+          readOnly={chat?.status !== 'active'}
         />
-        <TouchableOpacity onPress={sendMessage} style={themedStyles.sendButton}>
+        <TouchableOpacity onPress={sendMessage} disabled={chat?.status !== 'active'} style={themedStyles.sendButton}>
           <Ionicons
             name="send"
             size={24}
@@ -200,15 +239,16 @@ const styles = (theme: ITheme) =>
       alignItems: "center",
       justifyContent: "space-between",
       padding: spacing.md,
+      paddingTop: spacing.xl,
       backgroundColor: theme.primary,
       ...shadows.medium,
     },
     headerText: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: 16,
+      fontWeight: "semibold",
       color: theme.background,
       flex: 1,
-      textAlign: "center",
+      textAlign: "right",
     },
     recipientText: {
       fontSize: 14,
@@ -269,6 +309,10 @@ const styles = (theme: ITheme) =>
     },
     sendButtonText: {
       color: theme.background,
+    },
+    endedChat: {
+      backgroundColor: theme.warning,
+      marginVertical: spacing.sm,
     },
   });
 

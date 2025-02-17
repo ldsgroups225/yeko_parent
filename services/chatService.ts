@@ -1,0 +1,272 @@
+import { IHomeworkDTO } from "@/types/IHomeworkDTO";
+import { supabase } from "@/lib/supabase";
+import { formatFullName } from "@/utils/formatting";
+
+// types/chat.ts
+export interface ChatTopic {
+  id: number;
+  topicKey: string;
+  defaultMessage: string;
+  isActive: boolean;
+}
+
+export interface Chat {
+  id: string;
+  studentId: string;
+  parentId: string;
+  teacherId: string;
+  classId: string;
+  schoolId: string;
+  topicId?: number;
+  status: 'active' | 'ended' | 'archived';
+  messageCount: number;
+  initiatedBy: string;
+  endedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Message {
+  title: string;
+  messageCount: number;
+  status: 'active' | 'ended' | 'archived';
+  messages: {
+    id: string,
+    text: string,
+    sender: "user" | "other",
+    timestamp: Date
+  }[];
+}
+
+export interface Conversation {
+  id: string;
+  topic: string;
+  lastMessage: string;
+  lastMessageDate: Date;
+  unreadCount: number;
+  participants: string[];
+}
+
+export interface ChatWithDetails extends Chat {
+  studentName: string;
+  teacherName: string;
+  topic?: string;
+  lastMessage?: string;
+  lastMessageDate?: Date;
+  unreadCount: number;
+}
+
+export const chat = {
+  async getStudentMaiTeacher(studentId: string): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+      .rpc('get_student_main_teacher', {
+        student_uuid: studentId
+      })
+      .single();
+
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (error) {
+      return null;
+    }
+  },
+  
+  async getChatTopics(): Promise<ChatTopic[]> {
+    try {
+      const { data, error } = await supabase
+      .from('chat_topics')
+      .select('*')
+      .eq('is_active', true);
+  
+      if (error) throw new Error(error.message);
+
+      return data.map((topic) => ({
+        id: topic.id,
+        topicKey: topic.topic_key,
+        defaultMessage: topic.default_message,
+        isActive: topic.is_active ?? false
+      } satisfies ChatTopic))
+    } catch (error) {
+      console.error("Error getting chat topics:", error);
+      throw error;
+    }
+  },
+
+  async createNewChat({
+    studentId,
+    parentId,
+    schoolId,
+    classId,
+    topicId,
+  }: {
+      studentId: string;
+      parentId: string;
+      schoolId: string;
+      classId: string;
+      topicId?: number;
+    }): Promise<Chat> {
+    try {
+      const teacherId = await this.getStudentMaiTeacher(studentId);
+      if (!teacherId) throw new Error("Votre enfant ne semble pas avoir de professeur principal");
+
+      const { data, error } = await supabase
+      .from('chats')
+      .insert({
+        student_id: studentId,
+        parent_id: parentId,
+        topic_id: topicId,
+        initiated_by: parentId,
+        class_id: classId,
+        school_id: schoolId,
+        teacher_id: teacherId,
+      })
+      .select()
+      .single();
+
+      if (error) throw error;
+
+      if (topicId) {
+        const { data: topicData } = await supabase
+          .from('chat_topics')
+          .select('default_message')
+          .eq('id', topicId)
+          .single();
+  
+        if (topicData) {
+          await supabase.from('messages').insert([{
+            chat_id: data.id,
+            sender_id: data.teacher_id,
+            content: topicData.default_message,
+            is_system_message: true
+          }]);
+        }
+      }
+  
+      return {
+        id: data.id,
+        studentId: data.student_id,
+        parentId: data.parent_id,
+        teacherId: data.teacher_id,
+        classId: data.class_id,
+        schoolId: data.school_id,
+        topicId: data.topic_id!,
+        status: data.status as Chat['status'],
+        messageCount: data.message_count ?? 0,
+        initiatedBy: data.initiated_by!,
+        createdAt: new Date(data.created_at!),
+        updatedAt: new Date(data.updated_at!),
+        endedAt: data.ended_at ? new Date(data.ended_at!) : undefined,
+      } satisfies Chat
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getConversations(userId: string): Promise<Conversation[]> {
+    try {
+      const { data, error } = await supabase
+      .from('chats')
+      .select(`
+        id,
+        chat_topics(title, default_message),
+        teacher: users!chats_teacher_id_fkey(first_name, last_name),
+        parent: users!chats_parent_id_fkey(first_name, last_name)
+      `)
+      .eq('parent_id', userId)
+      .order('created_at', { ascending: false });
+    
+      if (error) throw error;
+
+      // Fetch last message for each conversation
+      const chatIDs = data.map(c => c.id);
+      
+      let messages: { chat_id: string; content: string, date: Date, isRead: boolean }[] = []
+
+      for (let i = 0; i < chatIDs.length; i++) {
+        const { data: msg, error } = await supabase
+          .from('messages')
+          .select('chat_id, content, created_at, read_by')
+          .eq('chat_id', chatIDs[i])
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        if (error) throw error;
+        messages.push({ chat_id: chatIDs[i], content: msg![0].content, date: new Date(msg![0].created_at!), isRead: !!msg![0].read_by?.length });
+      }
+
+
+      const chats = data.map(c => ({
+        id: c.id,
+        topic: c.chat_topics!.title,
+        lastMessage: messages.find(m => m.chat_id === c.id)!.content,
+        lastMessageDate: messages.find(m => m.chat_id === c.id)!.date,
+        unreadCount: messages.find(m => m.chat_id === c.id)!.isRead ? 0 : 1,
+        participants: [
+          formatFullName(c.teacher.first_name!, c.teacher.last_name!),
+          formatFullName(c.parent.first_name!, c.parent.last_name!)
+        ],
+      } satisfies Conversation))
+
+      return chats
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getMessages({userId, chatId}: {userId: string, chatId: string}): Promise<Message> {
+    try {
+      const chatQuery = supabase
+        .from('chats')
+        .select('chat_topics(title), message_count, status')
+        .eq('id', chatId)
+        .eq('initiated_by', userId)
+        .neq('status', 'archived')
+        .single();
+      
+      const messageQuery = supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: true });
+
+      const [
+        {data: chatData, error: chatError}, 
+        {data: messages, error: messagesError},
+      ] = await Promise.all([chatQuery, messageQuery]);
+
+      if (chatError) throw chatError;
+      if (messagesError) throw messagesError;
+
+      return {
+        title: chatData?.chat_topics?.title ?? 'Untitled',
+        messageCount: chatData?.message_count ?? 0,
+        status: (chatData?.status) as Message['status'],
+        messages: messages?.map(msg => ({
+          id: msg.id,
+          text: msg.content,
+          sender: msg.sender_id === userId ? 'user' : 'other',
+          timestamp: new Date(msg.created_at!)
+        }))
+      }
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async createMessage({senderId, chatId, content}: {senderId: string, chatId: string, content: string}): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .insert([{
+          chat_id: chatId,
+          sender_id: senderId,
+          content: content.trim(),
+        }]);
+      
+      if (error) throw error;
+    } catch (error) {
+      throw error;
+    }
+  }
+};

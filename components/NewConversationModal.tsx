@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Animated,
   Modal,
@@ -7,21 +7,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-// Components
-import CsCard from "@/components/CsCard";
-import CsText from "@/components/CsText";
+import { supabase } from "@/lib/supabase";
+import { CsCard, CsText, LoadingSpinner } from "@/components";
 import { Ionicons } from "@expo/vector-icons";
-
-// Hooks
 import { useThemedStyles } from "@/hooks";
+import { ITheme, spacing } from "@/styles";
 
-// Types and Styles
-import { type ITheme, spacing } from "@/styles";
-
-// Interfaces
 interface Template {
-  id: string;
+  id: number;
   title: string;
   description: string;
   recipient: "teacher" | "admin";
@@ -30,51 +23,10 @@ interface Template {
 interface NewConversationModalProps {
   visible: boolean;
   onClose: () => void;
-  onSelectTemplate: (template: Template) => void;
+  onSelectTemplate: (template: Template | "custom") => void;
   animatedValue: Animated.Value;
   modalTranslateY: Animated.AnimatedInterpolation<number>;
 }
-
-// Template Data
-const templates: Template[] = [
-  {
-    id: "1",
-    title: "Retards répétés",
-    description: "Discuter des retards fréquents de votre enfant",
-    recipient: "teacher",
-  },
-  {
-    id: "2",
-    title: "Performance scolaire",
-    description: "S'enquérir des résultats scolaires de votre enfant",
-    recipient: "teacher",
-  },
-  {
-    id: "3",
-    title: "Paiement de la scolarité",
-    description: "Discuter des frais de scolarité ou des modalités de paiement",
-    recipient: "admin",
-  },
-  {
-    id: "4",
-    title: "Demande de rendez-vous",
-    description:
-      "Solliciter une rencontre avec un enseignant ou l'administration",
-    recipient: "admin",
-  },
-  {
-    id: "5",
-    title: "Problème de comportement",
-    description: "Discuter d'un problème de comportement signalé",
-    recipient: "teacher",
-  },
-  {
-    id: "6",
-    title: "Activités extrascolaires",
-    description: "Se renseigner sur les activités extrascolaires disponibles",
-    recipient: "admin",
-  },
-];
 
 const NewConversationModal: React.FC<NewConversationModalProps> = ({
   visible,
@@ -83,21 +35,68 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   animatedValue,
   modalTranslateY,
 }) => {
-  // Hooks
   const themedStyles = useThemedStyles<typeof styles>(styles);
+  const [selectedRecipient, setSelectedRecipient] = useState<"all" | "teacher" | "admin">("all");
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // States
-  const [selectedRecipient, setSelectedRecipient] = useState<
-    "all" | "teacher" | "admin"
-  >("all");
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('chat_topics')
+          .select('id, title, default_message')
+          .eq('is_active', true)
+          .order('created_at', { ascending: true });
 
-  // Computed Data
-  const filteredTemplates = templates.filter(
-    (template) =>
-      selectedRecipient === "all" || template.recipient === selectedRecipient
-  );
+        if (error) throw error;
 
-  // Main Render
+        const mappedTemplates: Template[] = data.map(topic => ({
+          id: topic.id,
+          title: topic.title,
+          description: topic.default_message,
+          recipient: "teacher" // All predefined topics go to teachers
+        }));
+
+        setTemplates(mappedTemplates);
+        setError("");
+      } catch (err) {
+        console.error("Failed to load chat topics:", err);
+        setError("Failed to load discussion topics. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (visible) fetchTopics();
+  }, [visible]);
+
+  const filteredTemplates = [
+    ...templates.filter(t => 
+      selectedRecipient === "all" || t.recipient === selectedRecipient
+    ),
+    ...(selectedRecipient !== "teacher" ? [{
+      id: -1,
+      title: "Discussion personnalisée",
+      description: "Démarrer une conversation libre avec l'administration",
+      recipient: "admin"
+    } satisfies Template] : [])
+  ];
+
+  const handleSelect = (template: Template | "custom") => {
+    if (template === "custom") {
+      onSelectTemplate({
+        id: -1,
+        title: "Discussion personnalisée",
+        description: "",
+        recipient: "admin"
+      });
+    } else {
+      onSelectTemplate(template);
+    }
+  };
+
   return (
     <Modal
       transparent={true}
@@ -118,69 +117,79 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           <View style={themedStyles.modalHeader}>
             <CsText style={themedStyles.modalTitle}>Nouvelle discussion</CsText>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons
-                name="close"
-                size={24}
-                color={themedStyles.icon.color}
-              />
+              <Ionicons name="close" size={24} color={themedStyles.icon.color} />
             </TouchableOpacity>
           </View>
+
           <View style={themedStyles.filterContainer}>
             {(["all", "teacher", "admin"] as const).map((filter) => (
               <TouchableOpacity
                 key={filter}
                 style={[
                   themedStyles.filterButton,
-                  selectedRecipient === filter &&
-                    themedStyles.selectedFilterButton,
+                  selectedRecipient === filter && themedStyles.selectedFilterButton,
                 ]}
                 onPress={() => setSelectedRecipient(filter)}
               >
                 <CsText
                   style={StyleSheet.flatten([
                     themedStyles.filterButtonText,
-                    selectedRecipient === filter &&
-                      themedStyles.selectedFilterButtonText,
+                    selectedRecipient === filter && themedStyles.selectedFilterButtonText,
                   ])}
                 >
-                  {filter === "all"
-                    ? "Tous"
-                    : filter === "teacher"
-                    ? "Professeurs"
-                    : "Administration"}
+                  {filter === "all" ? "Tous" : 
+                   filter === "teacher" ? "Professeurs" : "Administration"}
                 </CsText>
               </TouchableOpacity>
             ))}
           </View>
-          <ScrollView style={themedStyles.templateList}>
-            {filteredTemplates.map((template) => (
-              <TouchableOpacity
-                key={template.id}
-                onPress={() => onSelectTemplate(template)}
-              >
-                <CsCard style={themedStyles.templateCard}>
-                  <CsText variant="h3" style={themedStyles.templateTitle}>
-                    {template.title}
-                  </CsText>
-                  <CsText style={themedStyles.templateDescription}>
-                    {template.description}
-                  </CsText>
-                  <CsText style={themedStyles.recipientText}>
-                    {template.recipient === "teacher"
-                      ? "Professeur"
-                      : "Administration"}
-                  </CsText>
-                </CsCard>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+
+          {loading ? (
+            <LoadingSpinner />
+          ) : error ? (
+            <View style={themedStyles.errorContainer}>
+              <Ionicons name="warning" size={32} color={themedStyles.warning.color} />
+              <CsText style={themedStyles.errorText}>{error}</CsText>
+            </View>
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {filteredTemplates.map((template) => (
+                <TouchableOpacity
+                  key={template.id}
+                  onPress={() => 
+                    template.id === -1 
+                      ? handleSelect("custom") 
+                      : handleSelect(template)
+                  }
+                >
+                  <CsCard style={themedStyles.templateCard}>
+                    <CsText variant="h3" style={themedStyles.templateTitle}>
+                      {template.title}
+                    </CsText>
+                    <CsText style={themedStyles.templateDescription}>
+                      {template.description}
+                    </CsText>
+                    <View style={themedStyles.footer}>
+                      <CsText style={themedStyles.recipientText}>
+                        {template.recipient === "teacher" 
+                          ? "Professeur" 
+                          : "Administration"}
+                      </CsText>
+                      {template.id === -1 && (
+                        <CsText style={themedStyles.customBadge}>Personnalisé</CsText>
+                      )}
+                    </View>
+                  </CsCard>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
       </Animated.View>
     </Modal>
   );
 };
 
-// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     modalContainer: {
@@ -194,7 +203,6 @@ const styles = (theme: ITheme) =>
       borderTopRightRadius: 20,
       padding: spacing.md,
       maxHeight: "80%",
-      flex: 1,
     },
     modalHeader: {
       flexDirection: "row",
@@ -211,25 +219,25 @@ const styles = (theme: ITheme) =>
       flexDirection: "row",
       justifyContent: "space-between",
       marginBottom: spacing.md,
+      gap: spacing.xs,
     },
     filterButton: {
+      flex: 1,
       paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.sm,
-      borderRadius: 20,
+      borderRadius: 8,
       borderWidth: 1,
       borderColor: theme.primary,
+      alignItems: "center",
     },
     selectedFilterButton: {
       backgroundColor: theme.primary,
     },
     filterButtonText: {
       color: theme.primary,
+      fontSize: 14,
     },
     selectedFilterButtonText: {
       color: theme.background,
-    },
-    templateList: {
-      flex: 1,
     },
     templateCard: {
       marginBottom: spacing.sm,
@@ -237,14 +245,42 @@ const styles = (theme: ITheme) =>
     },
     templateTitle: {
       marginBottom: spacing.xs,
+      color: theme.primary,
     },
     templateDescription: {
       color: theme.textLight,
       marginBottom: spacing.xs,
+      fontSize: 14,
+    },
+    footer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
     recipientText: {
+      color: theme.textLight,
+      fontSize: 12,
+    },
+    customBadge: {
+      backgroundColor: theme.primaryLight,
       color: theme.primary,
-      fontWeight: "bold",
+      paddingHorizontal: spacing.xs,
+      borderRadius: 4,
+      fontSize: 12,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: spacing.xl,
+      gap: spacing.md,
+    },
+    errorText: {
+      color: theme.warning,
+      textAlign: "center",
+    },
+    warning: {
+      color: theme.warning,
     },
     icon: {
       color: theme.text,

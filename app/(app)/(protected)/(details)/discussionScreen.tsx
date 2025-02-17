@@ -1,60 +1,38 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Animated, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 
 // Components
-import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard, NewConversationModal } from "@/components";
+import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard } from "@/components";
 import { Ionicons } from "@expo/vector-icons";
 
 // Hooks
-import { useThemedStyles } from "@/hooks";
+import { useChat, useThemedStyles } from "@/hooks";
 import useDataFetching from "@/hooks/useDataFetching";
-import { useNavigation } from "@react-navigation/native";
 
 // Navigation
-// import { StackNavigationProp } from "@react-navigation/stack";
-// import { navigationRef } from "@helpers/router";
-// import Routes from "@utils/Routes";
-
-// Types and Styles
-import { type ITheme, shadows, spacing } from "@/styles";
-
-// Utils
+import { useRouter } from "expo-router";
+import NewConversationModal from "@/components/NewConversationModal";
+import { Conversation } from "@/services";
 import { formatDate } from "@/utils";
+import { useAppSelector } from "@/store";
+import { supabase } from "@/lib/supabase";
+import { ITheme, shadows, spacing } from "@/styles";
 
 // Interfaces
-interface Conversation {
-  id: string;
-  topic: string;
-  lastMessage: string;
-  lastMessageDate: Date;
-  unreadCount: number;
-  participants: string[];
-}
-
 interface Template {
-  id: string;
+  id: number;
   title: string;
   description: string;
   recipient: "teacher" | "admin";
 }
 
-// Navigation Types
-type RootStackParamList = {
-  ConversationDetail: {
-    templateId: string;
-    templateTitle: string;
-    recipient: "teacher" | "admin";
-  };
-};
-
-// type DiscussionScreenNavigationProp = StackNavigationProp<
-//   RootStackParamList,
-//   "ConversationDetail"
-// >;
-
 const DiscussionScreen: React.FC = () => {
+  const user = useAppSelector((s) => s?.AppReducer?.user);
+  const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
+
   // Hooks and Navigation
-  // const navigation = useNavigation<DiscussionScreenNavigationProp>();
+  const router = useRouter();
+  const { createNewChat, getConversations, loading: chatLoading, error: chatError } = useChat();
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
   // States
@@ -74,42 +52,7 @@ const DiscussionScreen: React.FC = () => {
   });
 
   // Data Fetching
-  const fetchConversations = useCallback(async () => {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // TODO: Replace with actual API call to fetch conversation data
-    const mockData: Conversation[] = [
-      {
-        id: "1",
-        topic: "Retards répétés",
-        lastMessage:
-          "Nous devons discuter des retards fréquents de votre enfant.",
-        lastMessageDate: new Date(2024, 3, 15),
-        unreadCount: 2,
-        participants: ["M. Kouassi (Professeur principal)"],
-      },
-      {
-        id: "2",
-        topic: "Paiement de la scolarité",
-        lastMessage: "Rappel : le prochain versement est dû le 30 avril.",
-        lastMessageDate: new Date(2024, 3, 20),
-        unreadCount: 0,
-        participants: ["Mme Bamba (Administration)"],
-      },
-      {
-        id: "3",
-        topic: "Problème de comportement",
-        lastMessage:
-          "Votre enfant a été impliqué dans un incident aujourd'hui.",
-        lastMessageDate: new Date(2024, 3, 22),
-        unreadCount: 1,
-        participants: ["M. Kone (Surveillant général)"],
-      },
-    ];
-
-    return mockData;
-  }, []);
+  const fetchConversations = useCallback(async () => await getConversations(user!.id), []);
 
   const {
     data: conversations,
@@ -118,17 +61,33 @@ const DiscussionScreen: React.FC = () => {
     fetchData: refetchData,
   } = useDataFetching(fetchConversations, []);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('chats')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chats',
+        filter: `parent_id=eq.${user?.id}`
+      }, () => refetchData())
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [user?.id]);
+
   // Computed Data
   const summary = useMemo(() => {
     if (!conversations) return { totalConversations: 0, unreadMessages: 0 };
     return {
       totalConversations: conversations.length,
       unreadMessages: conversations.reduce(
-        (sum, conv) => sum + conv.unreadCount,
+        (sum, converse) => sum + converse.unreadCount,
         0
       ),
     };
-  }, [conversations]);
+  }, [conversations?.length]);
 
   const summaryItems = [
     {
@@ -144,6 +103,14 @@ const DiscussionScreen: React.FC = () => {
       color: themedStyles.warning.color,
     },
   ];
+
+  // Navigation handler
+  const handleConversationPress = useCallback(
+    (chatId: string) => () => {
+      router.push(`/(app)/(protected)/(details)/${chatId}`);
+    },
+    [router]
+  );
 
   // Render Methods
   const renderHeader = () => (
@@ -166,7 +133,6 @@ const DiscussionScreen: React.FC = () => {
                   themedStyles.selectedFilterButtonText,
               ])}
             >
-              {/* Filter labels */}
               {filter === "all"
                 ? "Tous"
                 : filter === "unread"
@@ -181,14 +147,7 @@ const DiscussionScreen: React.FC = () => {
     </View>
   );
 
-  const renderConversationItem = useCallback(
-    ({ item }: { item: Conversation }) => (
-      <ConversationItem conversation={item} />
-    ),
-    []
-  );
-
-  // Callbacks for Modal and Navigation
+  // Modal handlers
   const handleNewConversation = () => {
     setNewConversationModalVisible(true);
     Animated.spring(modalAnimatedValue, {
@@ -209,14 +168,30 @@ const DiscussionScreen: React.FC = () => {
     });
   };
 
-  const handleSelectTemplate = (template: Template) => {
+  const handleSelectTemplate = async (template: Template | "custom") => {
+    let chatId: string
+
+    if (template === "custom") {
+      const newChat = await createNewChat({
+        studentId: selectedStudent!.id,
+        parentId: user!.id,
+        schoolId: selectedStudent!.school.id,
+        classId: selectedStudent!.class.id,
+      })
+      chatId = newChat.id
+    } else {
+      const newChat = await createNewChat({
+        studentId: selectedStudent!.id,
+        parentId: user!.id,
+        schoolId: selectedStudent!.school.id,
+        classId: selectedStudent!.class.id,
+        topicId: template.id,
+      });
+      chatId = newChat.id
+    }
+
     handleCloseModal();
-    // TODO: Implement navigation
-    // navigationRef.navigate(Routes.ConversationDetail, {
-    //   templateId: template.id,
-    //   templateTitle: template.title,
-    //   recipient: template.recipient,
-    // });
+    router.push(`/(app)/(protected)/(details)/${chatId}`)
   };
 
   // Main Render
@@ -227,10 +202,15 @@ const DiscussionScreen: React.FC = () => {
   return (
     <View style={themedStyles.container}>
       {renderHeader()}
-      <AnimatedFlatList
+      <FlatList
         style={themedStyles.conversationList}
         data={conversations}
-        renderItem={renderConversationItem}
+        renderItem={({ item }) => (
+          <ConversationItem
+            conversation={item}
+            onPress={handleConversationPress(item.id)}
+          />
+        )}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <SummaryCard
@@ -242,6 +222,7 @@ const DiscussionScreen: React.FC = () => {
         }
         onRefresh={refetchData}
         refreshing={refreshing}
+        showsVerticalScrollIndicator={false}
       />
       <TouchableOpacity
         style={themedStyles.newConversationButton}
@@ -273,67 +254,68 @@ const DiscussionScreen: React.FC = () => {
   );
 };
 
-// Conversation Item Component
-const ConversationItem: React.FC<{ conversation: Conversation }> = React.memo(
-  ({ conversation }) => {
-    const themedStyles = useThemedStyles<typeof styles>(styles);
-    const opacity = useRef(new Animated.Value(0)).current;
+// Simplified Conversation Item Component
+const ConversationItem: React.FC<{ conversation: Conversation; onPress: () => void }> = ({
+  conversation,
+  onPress,
+}) => {
+  const themedStyles = useThemedStyles<typeof styles>(styles);
+  const opacity = useRef(new Animated.Value(0)).current;
 
-    React.useEffect(() => {
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }, []);
+  useEffect(() => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
-    const animatedStyle = {
-      opacity,
-      transform: [
-        {
-          translateY: opacity.interpolate({
-            inputRange: [0, 1],
-            outputRange: [50, 0],
-          }),
-        },
-      ],
-    };
+  const animatedStyle = {
+    opacity,
+    transform: [
+      {
+        translateY: opacity.interpolate({
+          inputRange: [0, 1],
+          outputRange: [50, 0],
+        }),
+      },
+    ],
+  };
 
-    return (
-      <Animated.View style={[themedStyles.conversationItem, animatedStyle]}>
-        <CsCard style={themedStyles.conversationCard}>
-          <View style={themedStyles.conversationHeader}>
-            <CsText variant="h3" style={themedStyles.conversationTopic}>
-              {conversation.topic}
-            </CsText>
-            {conversation.unreadCount > 0 && (
-              <View style={themedStyles.unreadBadge}>
-                <CsText style={themedStyles.unreadBadgeText}>
-                  {conversation.unreadCount}
-                </CsText>
-              </View>
-            )}
-          </View>
-          <CsText
-            variant="body"
-            numberOfLines={2}
-            style={themedStyles.lastMessage}
-          >
-            {conversation.lastMessage}
+  return (
+    <Animated.View style={[themedStyles.conversationItem, animatedStyle]}>
+      <CsCard style={themedStyles.conversationCard} onPress={onPress}>
+        <View style={themedStyles.conversationHeader}>
+          <CsText variant="h3" style={themedStyles.conversationTopic}>
+            {conversation.topic}
           </CsText>
-          <View style={themedStyles.conversationFooter}>
-            <CsText variant="caption" style={themedStyles.participantText}>
-              {conversation.participants[0]}
-            </CsText>
-            <CsText variant="caption" style={themedStyles.dateText}>
-              {formatDate(conversation.lastMessageDate, "d MMM yyyy")}
-            </CsText>
-          </View>
-        </CsCard>
-      </Animated.View>
-    );
-  }
-);
+          {conversation.unreadCount > 0 && (
+            <View style={themedStyles.unreadBadge}>
+              <CsText style={themedStyles.unreadBadgeText}>
+                {conversation.unreadCount}
+              </CsText>
+            </View>
+          )}
+        </View>
+        <CsText
+          variant="body"
+          numberOfLines={2}
+          style={themedStyles.lastMessage}
+        >
+          {conversation.lastMessage}
+        </CsText>
+        <View style={themedStyles.conversationFooter}>
+          <CsText variant="caption" style={themedStyles.participantText}>
+            {conversation.participants[0]}
+          </CsText>
+          <CsText variant="caption" style={themedStyles.dateText}>
+            {formatDate(conversation.lastMessageDate, "d MMM yyyy")}
+          </CsText>
+        </View>
+      </CsCard>
+    </Animated.View>
+  );
+};
 
 // Styles
 const styles = (theme: ITheme) =>

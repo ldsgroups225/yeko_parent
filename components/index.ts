@@ -15,7 +15,6 @@ import AnimatedFlatList from "./AnimatedFlatList";
 import SummaryCard from "./SummaryCard";
 import {getSchoolMonthIndex} from "./TitleAndMonths";
 import TitleAndMonths from "./TitleAndMonths";
-import NewConversationModal from "./NewConversationModal";
 
 export {
   CsButton,
@@ -35,5 +34,4 @@ export {
   SummaryCard,
   getSchoolMonthIndex,
   TitleAndMonths,
-  NewConversationModal,
 };

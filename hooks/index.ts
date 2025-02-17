@@ -11,3 +11,4 @@ export * from './useSchedule';
 export * from './useNote';
 export * from './useFeedback';
 export * from './useSchoolYear';
+export * from './useChat';
