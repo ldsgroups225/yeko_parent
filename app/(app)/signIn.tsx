@@ -90,7 +90,7 @@ export default function SignInScreen() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
       <Image
-        source={require("@/assets/images/icon.png")}
+        source={require("@/assets/images/icon2.png")}
         style={themedStyles.logo}
       />
       <ScrollView contentContainerStyle={themedStyles.scrollContent}>

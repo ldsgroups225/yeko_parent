@@ -85,7 +85,7 @@ export default function WelcomeScreen() {
     <>
       <Animated.View style={[themedStyles.logoContainer, logoAnimatedStyle]}>
         <Image
-          source={require("@/assets/images/icon.png")}
+          source={require("@/assets/images/icon2.png")}
           style={themedStyles.logo}
           resizeMode="contain"
         />

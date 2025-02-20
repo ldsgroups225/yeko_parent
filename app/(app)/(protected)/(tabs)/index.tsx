@@ -168,7 +168,7 @@ const Home: React.FC = () => {
             </View>
             <View style={themedStyles.userContainer}>
               <Image
-                source={require("@/assets/images/icon.png")}
+                source={require("@/assets/images/icon2.png")}
                 style={themedStyles.yekoLogo}
               />
               <View style={themedStyles.userInfoContainer}>
