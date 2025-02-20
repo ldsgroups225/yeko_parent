@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Animated, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 
 // Components
-import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard } from "@/components";
+import { CsCard, CsText, LoadingScreen, SummaryCard } from "@/components";
 import { Ionicons } from "@expo/vector-icons";
 
 // Hooks
@@ -11,45 +11,22 @@ import useDataFetching from "@/hooks/useDataFetching";
 
 // Navigation
 import { useRouter } from "expo-router";
-import NewConversationModal from "@/components/NewConversationModal";
 import { Conversation } from "@/services";
 import { formatDate } from "@/utils";
 import { useAppSelector } from "@/store";
 import { supabase } from "@/lib/supabase";
 import { ITheme, shadows, spacing } from "@/styles";
 
-// Interfaces
-interface Template {
-  id: number;
-  title: string;
-  description: string;
-  recipient: "teacher" | "admin";
-}
-
 const DiscussionScreen: React.FC = () => {
   const user = useAppSelector((s) => s?.AppReducer?.user);
-  const selectedStudent = useAppSelector((s) => s?.AppReducer?.selectedStudent);
 
   // Hooks and Navigation
   const router = useRouter();
-  const { createNewChat, getConversations, loading: chatLoading, error: chatError } = useChat();
+  const { getConversations } = useChat();
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
   // States
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const [isNewConversationModalVisible, setNewConversationModalVisible] =
-    useState(false);
-
-  // Refs and Animations
-  const modalAnimatedValue = useRef(new Animated.Value(0)).current;
-  const modalBackgroundOpacity = modalAnimatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 0.5],
-  });
-  const modalTranslateY = modalAnimatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [300, 0],
-  });
 
   // Data Fetching
   const fetchConversations = useCallback(async () => await getConversations(user!.id), []);
@@ -69,7 +46,14 @@ const DiscussionScreen: React.FC = () => {
         schema: 'public',
         table: 'chats',
         filter: `parent_id=eq.${user?.id}`
-      }, () => refetchData())
+      }, () => {
+        // refetchData();
+
+        setTimeout(() => {
+          refetchData();
+        }
+        , 700);
+      })
       .subscribe();
 
     return () => {
@@ -105,12 +89,9 @@ const DiscussionScreen: React.FC = () => {
   ];
 
   // Navigation handler
-  const handleConversationPress = useCallback(
-    (chatId: string) => () => {
-      router.push(`/(app)/(protected)/(details)/${chatId}`);
-    },
-    [router]
-  );
+  const handleConversationPress = (chatId: string) => {
+    router.push(`/(app)/(protected)/(details)/${chatId}`);
+  }
 
   // Render Methods
   const renderHeader = () => (
@@ -147,54 +128,10 @@ const DiscussionScreen: React.FC = () => {
     </View>
   );
 
-  // Modal handlers
   const handleNewConversation = () => {
-    setNewConversationModalVisible(true);
-    Animated.spring(modalAnimatedValue, {
-      toValue: 1,
-      useNativeDriver: true,
-      tension: 50,
-      friction: 7,
-    }).start();
+    router.push(`/(app)/(protected)/(details)/newConversationModal`)
   };
 
-  const handleCloseModal = () => {
-    Animated.timing(modalAnimatedValue, {
-      toValue: 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(() => {
-      setNewConversationModalVisible(false);
-    });
-  };
-
-  const handleSelectTemplate = async (template: Template | "custom") => {
-    let chatId: string
-
-    if (template === "custom") {
-      const newChat = await createNewChat({
-        studentId: selectedStudent!.id,
-        parentId: user!.id,
-        schoolId: selectedStudent!.school.id,
-        classId: selectedStudent!.class.id,
-      })
-      chatId = newChat.id
-    } else {
-      const newChat = await createNewChat({
-        studentId: selectedStudent!.id,
-        parentId: user!.id,
-        schoolId: selectedStudent!.school.id,
-        classId: selectedStudent!.class.id,
-        topicId: template.id,
-      });
-      chatId = newChat.id
-    }
-
-    handleCloseModal();
-    router.push(`/(app)/(protected)/(details)/${chatId}`)
-  };
-
-  // Main Render
   if (loading) {
     return <LoadingScreen />;
   }
@@ -208,7 +145,7 @@ const DiscussionScreen: React.FC = () => {
         renderItem={({ item }) => (
           <ConversationItem
             conversation={item}
-            onPress={handleConversationPress(item.id)}
+            onPress={() => handleConversationPress(item.id)}
           />
         )}
         keyExtractor={(item) => item.id}
@@ -231,30 +168,10 @@ const DiscussionScreen: React.FC = () => {
         <Ionicons name="add" size={24} color={themedStyles.buttonText.color} />
         <CsText style={themedStyles.buttonText}>Nouvelle discussion</CsText>
       </TouchableOpacity>
-
-      {/* New Conversation Modal */}
-      {isNewConversationModalVisible && (
-        <>
-          <Animated.View
-            style={[
-              themedStyles.modalBackground,
-              { opacity: modalBackgroundOpacity },
-            ]}
-          />
-          <NewConversationModal
-            visible={isNewConversationModalVisible}
-            onClose={handleCloseModal}
-            onSelectTemplate={handleSelectTemplate}
-            animatedValue={modalAnimatedValue}
-            modalTranslateY={modalTranslateY}
-          />
-        </>
-      )}
     </View>
   );
 };
 
-// Simplified Conversation Item Component
 const ConversationItem: React.FC<{ conversation: Conversation; onPress: () => void }> = ({
   conversation,
   onPress,
@@ -317,7 +234,6 @@ const ConversationItem: React.FC<{ conversation: Conversation; onPress: () => vo
   );
 };
 
-// Styles
 const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {

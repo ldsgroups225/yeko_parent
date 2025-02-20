@@ -176,7 +176,9 @@ export const chat = {
       .eq('parent_id', userId)
       .order('created_at', { ascending: false });
     
-      if (error) throw error;
+      if (error) {
+        console.log("Error getting conversations:", error);
+        throw error};
 
       // Fetch last message for each conversation
       const chatIDs = data.map(c => c.id);
@@ -190,16 +192,27 @@ export const chat = {
           .eq('chat_id', chatIDs[i])
           .order('created_at', { ascending: false })
           .limit(1);
-        
+
         if (error) throw error;
-        messages.push({ chat_id: chatIDs[i], content: msg![0].content, date: new Date(msg![0].created_at!), isRead: !!msg![0].read_by?.length });
+
+        if (!msg.length) continue;
+        const lastMessage = msg[0];
+
+        messages.push({
+          chat_id: chatIDs[i],
+          content: lastMessage.content,
+          isRead: !!lastMessage.read_by?.length,
+          date: lastMessage.created_at 
+            ? new Date(lastMessage.created_at)
+            : new Date(),
+        });
       }
 
 
       const chats = data.map(c => ({
         id: c.id,
         topic: c.chat_topics!.title,
-        lastMessage: messages.find(m => m.chat_id === c.id)!.content,
+        lastMessage: messages.find(m => m.chat_id === c.id)?.content ?? '',
         lastMessageDate: messages.find(m => m.chat_id === c.id)!.date,
         unreadCount: messages.find(m => m.chat_id === c.id)!.isRead ? 0 : 1,
         participants: [
