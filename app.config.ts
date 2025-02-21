@@ -30,7 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     favicon: "./assets/images/favicon.png",
   },
   splash: {
-    image: "./assets/images/splash.png",
+    image: "./assets/images/splash-icon.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
