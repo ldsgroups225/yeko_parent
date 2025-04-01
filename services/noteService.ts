@@ -6,7 +6,15 @@ export const note = {
     const isHomework = noteType.length === 1 && noteType[0] === NOTE_TYPE.HOMEWORK;
 
     try {
-      let classId = isHomework ? (await supabase.from('students').select('class_id').eq('id', studentId).single().throwOnError()).data?.class_id : null;
+      let classId = isHomework ? (await supabase.from('student_school_class')
+        .select('class_id')
+        .eq('student_id', studentId)
+        .eq('school_year_id', schoolYearId)
+        .eq('enrollment_status', 'accepted')
+        .eq('is_active', true)
+        .single()
+        .throwOnError()).data?.class_id : null;
+
       let query = supabase
         .from('notes')
         .select(`
