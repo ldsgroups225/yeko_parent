@@ -5,6 +5,12 @@
 import { IScheduleDTO } from "@/types/IScheduleDTO";
 import { supabase } from "@/lib/supabase";
 import { formatting } from "@/utils";
+import type { Database } from "@/lib/supabase/types";
+
+type TeacherInfo = {
+  teacher_id: string;
+  users: { first_name: string; last_name: string };
+};
 
 /**
  * Schedule service object containing methods for schedule-related operations.
@@ -20,44 +26,57 @@ export const schedule = {
    */
   async getSchedules(classId: string): Promise<IScheduleDTO[]> {
     try {
-      const { data, error } = await supabase
-        .from("schedules")
-        .select(
-          `
-          id,
-          class_id,
-          subject_id,
-          subjects(name),
-          teacher_id,
-          users(first_name, last_name),
-          day_of_week,
-          start_time,
-          end_time,
-          room
-        `
-        )
-        .eq("class_id", classId);
+    const scheduleQs = supabase
+          .from("schedules")
+          .select(`
+            id,
+            class_id,
+            subject_id,
+            subjects(name),
+            day_of_week,
+            start_time,
+            end_time,
+            room
+          `)
+          .eq("class_id", classId)
 
-      if (error) throw new Error(error.message);
+      const teacherQs = supabase
+          .from("teacher_class_assignments")
+          .select(`
+            teacher_id,
+            subject_id,
+            users!inner(first_name, last_name)
+          `)
+          .eq("class_id", classId)
+
+      const [
+        { data: schedules, error: schedulesError },
+        { data: teachers, error: teachersError }
+      ] = await Promise.all([scheduleQs, teacherQs]);
+
+      if (schedulesError) throw new Error(schedulesError.message);
+      if (teachersError) throw new Error(teachersError.message);
 
       const getFullName = (user: { first_name: string; last_name: string }) => {
         return formatting.formatFullName(user.first_name, user.last_name);
       };
 
-      return data.map((record) => ({
-        id: record.id,
-        classId: record.class_id,
-        subjectId: record.subject_id,
-        subjectName: (record.subjects as unknown as { name: string }).name,
-        teacherId: record.teacher_id,
-        teacherName: getFullName(
-          record.users as unknown as { first_name: string; last_name: string }
-        ),
-        dayOfWeek: record.day_of_week,
-        startTime: record.start_time,
-        endTime: record.end_time,
-        room: record.room,
-      }));
+      return schedules.map((schedule) => {
+        const teacher = teachers.find(t => t.subject_id === schedule.subject_id) as TeacherInfo | undefined;
+        
+        return {
+          id: schedule.id,
+          classId: schedule.class_id,
+          subjectId: schedule.subject_id,
+          subjectName: (schedule.subjects as { name: string }).name,
+          teacherId: teacher?.teacher_id ?? '',
+          teacherName: teacher ? getFullName(teacher.users) : '',
+          dayOfWeek: schedule.day_of_week,
+          startTime: schedule.start_time,
+          endTime: schedule.end_time,
+          room: schedule.room,
+        };
+      });
     } catch (error) {
       console.error("Error getting schedule records:", error);
       throw error;
