@@ -2415,6 +2415,7 @@ export type Database = {
           first_name: string
           last_name: string
           id_number: string
+          avatar_url: string
           class_id: string
           class_name: string
           school_id: string

@@ -14,6 +14,7 @@ interface IUserResponse {
   first_name: string;
   last_name: string;
   id_number: string;
+  avatar_url: string;
   school_id: string;
   school_name: string;
   school_image_url: string;
@@ -93,6 +94,7 @@ export const useAuth = (): useAuthReturn => {
             firstName: s.first_name || "",
             lastName: s.last_name || "",
             idNumber: s.id_number || "",
+            avatarUrl: s.avatar_url || "",
             school: {
               id: s.school_id,
               name: s.school_name || "",

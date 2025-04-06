@@ -19,6 +19,7 @@ export interface IStudentDTO {
   firstName: string;
   lastName: string;
   idNumber: string;
+  avatarUrl: string;
   school: ISchoolDTO;
   class: IClassDTO;
 }

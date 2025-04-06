@@ -35,6 +35,7 @@ import { useDispatch } from "react-redux";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
+import { formatFullName } from "@/utils/formatting";
 
 // Localization
 // import translate from "@helpers/localization";
@@ -177,12 +178,12 @@ const Home: React.FC = () => {
                   onPress={() => setPopoverVisible(true)}
                 >
                   <Image
-                    source={require("@/assets/images/profile-pic.webp")}
+                    source={selectedChild?.avatarUrl ? { uri: selectedChild.avatarUrl } : require("@/assets/images/profile-pic.webp")}
                     style={themedStyles.avatar}
                   />
                   <View style={themedStyles.userTextContainer}>
                     <CsText variant="body" style={themedStyles.userName}>
-                      {selectedChild?.lastName} {selectedChild?.firstName}
+                      {formatFullName(selectedChild?.lastName ?? "", selectedChild?.firstName ?? "")}
                     </CsText>
                     <CsText variant="caption" style={themedStyles.userRole}>
                       {selectedChild?.class.name}
@@ -210,7 +211,7 @@ const Home: React.FC = () => {
                         onPress={() => handleChildSelect(child)}
                       >
                         <Image
-                          source={require("@/assets/images/profile-pic.webp")}
+                          source={child.avatarUrl ? { uri: child.avatarUrl } : require("@/assets/images/profile-pic.webp")}
                           style={themedStyles.childAvatar}
                         />
                         <View>
