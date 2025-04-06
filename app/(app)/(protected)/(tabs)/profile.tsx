@@ -138,7 +138,7 @@ const ProfileScreen: React.FC = () => {
         {/* Feedback Setting */}
         <CsListTile
           // title={translate("feedback")}
-          title="Retour d'information"
+          title="Signaler un problème"
           trailing={
             <Ionicons name="chevron-forward" size={24} color={theme.gray600} />
           }
