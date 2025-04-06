@@ -36,7 +36,8 @@ export const attendance = {
         .select(
           "id, status, is_excused, subjects(name), starts_at, ends_at, created_at"
         )
-        .eq("student_id", studentId);
+        .eq("student_id", studentId)
+        .order("created_at", { ascending: false });
 
       if (error) throw new Error(error.message);
 
