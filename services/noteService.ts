@@ -1,5 +1,6 @@
 import { INoteDTO } from "@/types/INoteDTO";
 import { NOTE_TYPE, supabase } from "@/lib/supabase";
+import { nanoid } from "@reduxjs/toolkit";
 
 export const note = {
   async getNotes(studentId: string, noteType: NOTE_TYPE[], schoolYearId: number, semesterId?: number, month?: number): Promise<INoteDTO[]> {
@@ -49,15 +50,17 @@ export const note = {
   
       if (error) throw new Error(error.message);
   
-      return data.map((dt) => ({
-        id:  classId ? dt.id : dt.details[0].id,
-        subjectId: dt.subjects.id,
-        subjectName: dt.subjects.name,
-        note: classId ? 0 : dt.details[0].note ?? 0,
-        date: new Date(dt.created_at),
-        dueDate: dt.due_date ? new Date(dt.due_date) : null,
-        isGraded: dt.is_graded,
-      } satisfies INoteDTO));
+      return data
+        .filter(f => f.details.length)
+        .map((dt) => ({
+          id: classId ? dt.id : dt.details[0].id,
+          subjectId: dt.subjects.id,
+          subjectName: dt.subjects.name,
+          note: classId ? 0 : dt.details[0].note ?? 0,
+          date: new Date(dt.created_at),
+          dueDate: dt.due_date ? new Date(dt.due_date) : null,
+          isGraded: dt.is_graded,
+        } satisfies INoteDTO));
     } catch (error) {
       console.error("Error getting note records:", error);
       throw error;
