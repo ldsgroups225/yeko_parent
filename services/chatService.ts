@@ -1,4 +1,3 @@
-import { IHomeworkDTO } from "@/types/IHomeworkDTO";
 import { supabase } from "@/lib/supabase";
 import { formatFullName } from "@/utils/formatting";
 
@@ -165,65 +164,126 @@ export const chat = {
 
   async getConversations(userId: string): Promise<Conversation[]> {
     try {
+      type UserInfo = { first_name: string | null; last_name: string | null; };
+      type ChatTopicInfo = { title: string | null; default_message: string | null; };
+      type ChatData = {
+        id: string;
+        chat_topics: ChatTopicInfo | null;
+        teacher: UserInfo | null;
+        parent: UserInfo | null; 
+        created_at: string;
+      };
+      type MessageData = {
+        chat_id: string;
+        content: string;
+        created_at: string | null;
+        read_by: string[] | null;
+      };
+      type Conversation = {
+        id: string;
+        topic: string;
+        lastMessage: string;
+        lastMessageDate: Date;
+        unreadCount: number;
+        participants: string[];
+      };
+
+
       const { data, error } = await supabase
-      .from('chats')
-      .select(`
-        id,
-        chat_topics(title, default_message),
-        teacher: users!chats_teacher_id_fkey(first_name, last_name),
-        parent: users!chats_parent_id_fkey(first_name, last_name)
-      `)
-      .eq('parent_id', userId)
-      .order('created_at', { ascending: false });
-    
+        .from('chats')
+        .select(`
+          id,
+          chat_topics(title, default_message),
+          teacher: users!chats_teacher_id_fkey(first_name, last_name),
+          parent: users!chats_parent_id_fkey(first_name, last_name),
+          created_at
+        `)
+        .eq('parent_id', userId)
+        .neq('status', 'archived')
+        .order('created_at', { ascending: false })
+        .returns<ChatData[]>();
+
       if (error) {
-        console.log("Error getting conversations:", error);
-        throw error};
+        console.error("Error fetching chats:", error);
+        throw error;
+      };
+
+      if (!data) {
+        console.warn("No chat data returned.");
+        return [];
+      }
 
       // Fetch last message for each conversation
       const chatIDs = data.map(c => c.id);
-      
+
       let messages: { chat_id: string; content: string, date: Date, isRead: boolean }[] = []
 
+      // Helper function assumed to be defined elsewhere
+      const formatFullName = (firstName: string | null, lastName: string | null): string => {
+        return `${firstName || ''} ${lastName || ''}`.trim() || 'Unknown User';
+      };
+
+
       for (let i = 0; i < chatIDs.length; i++) {
-        const { data: msg, error } = await supabase
+        const chatId = chatIDs[i];
+        const { data: msgData, error: msgError } = await supabase
           .from('messages')
           .select('chat_id, content, created_at, read_by')
-          .eq('chat_id', chatIDs[i])
+          .eq('chat_id', chatId)
           .order('created_at', { ascending: false })
-          .limit(1);
+          .limit(1)
+          .returns<MessageData[]>();
 
-        if (error) throw error;
+        if (msgError) {
+            console.error(`Error fetching message for chat ${chatId}:`, msgError);
+            continue;
+        };
 
-        if (!msg.length) continue;
-        const lastMessage = msg[0];
+        // Check if msgData is null, empty, or the first message lacks created_at
+        if (!msgData || msgData.length === 0 || !msgData[0].created_at) {
+            continue;
+        }
 
+        const lastMessage = msgData[0];
         messages.push({
-          chat_id: chatIDs[i],
-          content: lastMessage.content,
+          chat_id: chatId,
+          content: lastMessage.content ?? '',
           isRead: !!lastMessage.read_by?.length,
-          date: lastMessage.created_at 
-            ? new Date(lastMessage.created_at)
-            : new Date(),
+          date: new Date(lastMessage.created_at!),
         });
       }
 
 
-      const chats = data.map(c => ({
-        id: c.id,
-        topic: c.chat_topics!.title,
-        lastMessage: messages.find(m => m.chat_id === c.id)?.content ?? '',
-        lastMessageDate: messages.find(m => m.chat_id === c.id)!.date,
-        unreadCount: messages.find(m => m.chat_id === c.id)!.isRead ? 0 : 1,
-        participants: [
-          formatFullName(c.teacher.first_name!, c.teacher.last_name!),
-          formatFullName(c.parent.first_name!, c.parent.last_name!)
-        ],
-      } satisfies Conversation))
+      // Use reduce to filter chats that have messages and map them to the Conversation format
+      const chatsWithMessages = data.reduce((acc: Conversation[], chat) => {
+        const message = messages.find(m => m.chat_id === chat.id);
 
-      return chats
+        if (message) {
+          const teacherName = chat.teacher ? formatFullName(chat.teacher.first_name, chat.teacher.last_name) : 'Unknown Teacher';
+          const parentName = chat.parent ? formatFullName(chat.parent.first_name, chat.parent.last_name) : 'Unknown Parent';
+
+          const conversation: Conversation = {
+            id: chat.id,
+            topic: chat.chat_topics?.title ?? 'Question divers',
+            lastMessage: message.content,
+            lastMessageDate: message.date,
+            unreadCount: message.isRead ? 0 : 1,
+            participants: [teacherName, parentName],
+          };
+          acc.push(conversation);
+        }
+        return acc;
+      }, [] as Conversation[]);
+
+      return chatsWithMessages;
+
     } catch (error) {
-      throw error;
+      if (error instanceof Error) {
+        console.error("Error in getConversations:", error.message, error.stack);
+      } else {
+        console.error("An unexpected error occurred in getConversations:", error);
+      }
+      return [];
     }
   },
 
