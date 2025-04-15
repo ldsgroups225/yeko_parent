@@ -1,45 +1,46 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState, useEffect, DependencyList } from 'react';
 
 interface UseDataFetchingResult<T> {
   data: T | null;
   loading: boolean;
-  error: Error | null;
   refreshing: boolean;
   fetchData: () => Promise<void>;
 }
 
-function useDataFetching<T>(
-  fetchFunction: () => Promise<T>,
-  initialData: T | null = null
-): UseDataFetchingResult<T> {
-  const [data, setData] = useState<T | null>(initialData);
+const useDataFetching = <T>(
+  fetchFunction: () => Promise<T | null>,
+  dependencies: DependencyList = []
+): UseDataFetchingResult<T> => {
+  const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = async () => {
     try {
-      setError(null);
       const result = await fetchFunction();
       setData(result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('An error occurred'));
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setData(null);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [fetchFunction]);
+  };
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, dependencies);
 
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchData();
-  }, [fetchData]);
-
-  return { data, loading, error, refreshing, fetchData: handleRefresh };
-}
+  return {
+    data,
+    loading,
+    refreshing,
+    fetchData: async () => {
+      setRefreshing(true);
+      await fetchData();
+    },
+  };
+};
 
 export default useDataFetching;
