@@ -59,7 +59,6 @@ const Home: React.FC = () => {
   const headerOpacity = useSharedValue(0);
   const menuItemsOpacity = useSharedValue(0);
 
-  // Effects
   useEffect(() => {
     // Animate header and menu items on component mount
     headerOpacity.value = withDelay(300, withSpring(1));
@@ -103,7 +102,7 @@ const Home: React.FC = () => {
   const menuItems = [
     {
       icon: <Ionicons name="time-outline" size={24} color={theme.primary} />,
-      label: 'Ponctualité', // translate("attendance"),
+      label: 'Ponctualité',
       onPress: () => router.push("/(app)/(protected)/(details)/attendanceScreen")
     },
     {
@@ -114,26 +113,26 @@ const Home: React.FC = () => {
           color={theme.primary}
         />
       ),
-      label: 'Notes', // translate("notes"),
+      label: 'Notes',
       onPress: () => router.push('/(app)/(protected)/(details)/noteScreen')
     },
     {
       icon: (
         <Ionicons name="calendar-outline" size={24} color={theme.primary} />
       ),
-      label: 'Emploi du temps', // translate("schedule"),
+      label: 'Emploi du temps',
       onPress: () => router.push('/(app)/(protected)/(details)/scheduleScreen')
     },
     {
       icon: <Ionicons name="book-outline" size={24} color={theme.primary} />,
-      label: 'Exercices', // translate("exercises"),
+      label: 'Exercices',
       onPress: () => router.push('/(app)/(protected)/(details)/homeworkScreen')
     },
     {
       icon: (
         <Ionicons name="chatbubbles-outline" size={24} color={theme.primary} />
       ),
-      label: 'Discussion', // translate("discussion"),
+      label: 'Discussion',
       onPress: () => router.push('/(app)/(protected)/(details)/discussionScreen')
     },
     {
@@ -144,15 +143,15 @@ const Home: React.FC = () => {
           color={theme.primary}
         />
       ),
-      label: 'Infos et scolarité', // translate("infoAndSchooling"),
+      label: 'Infos et scolarité',
       onPress: () => router.push('/(app)/(protected)/(details)/eventScreen')
     },
   ];
 
-  // Main Render
+ 
   return (
     <ScreenWrapper>
-      <StatusBar hidden={false} backgroundColor={theme.textLight} />
+      <StatusBar hidden={false} backgroundColor={theme.gray200} />
 
       {/* Animated Header */}
       <Animated.View style={[themedStyles.header, headerAnimatedStyle]}>
