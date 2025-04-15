@@ -249,6 +249,7 @@ const styles = (theme: ITheme) =>
       color: theme.background,
       fontSize: 24,
       fontWeight: "bold",
+      marginTop: spacing.md,
       marginBottom: spacing.sm,
     },
     filterContainer: {
