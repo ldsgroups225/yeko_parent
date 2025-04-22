@@ -16,7 +16,6 @@ import useDataFetching from "@/hooks/useDataFetching";
 import { useAppSelector } from "@/store";
 
 // Types
-import { IHomeworkDTO } from "@/types/IHomeworkDTO";
 import { type ITheme, shadows, spacing } from "@/styles";
 
 // Utils
@@ -28,21 +27,6 @@ import { INoteDTO } from "@/types/INoteDTO";
 import { ISemester } from "@/types/ISchoolYearDTO";
 import { FlatList } from "react-native";
 import { Pressable } from "react-native";
-
-// Helper Function
-const getSchoolMonthIndex = (date: Date): number => {
-  const month = date.getMonth();
-  // If it's January to June, add 4 to the index (because September is index 0)
-  if (month >= 0 && month <= 5) {
-    return month + 4;
-  }
-  // If it's September to December, subtract 8 from the index
-  if (month >= 8 && month <= 11) {
-    return month - 8;
-  }
-  // For July and August, default to September (index 0)
-  return 0;
-};
 
 const HomeworkScreen: React.FC = () => {
   // Hooks and Redux
@@ -75,7 +59,7 @@ const HomeworkScreen: React.FC = () => {
     loading,
     refreshing,
     fetchData: refetchData,
-  } = useDataFetching(fetchHomework, []);
+  } = useDataFetching(fetchHomework, [selectedStudent, selectedSemester, selectedMonth, currentSchoolYear]);
 
   // Computed Data
   const summary = useMemo(() => {
