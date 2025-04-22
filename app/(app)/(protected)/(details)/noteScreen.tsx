@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -7,7 +7,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 // Components
-import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard, getSchoolMonthIndex, TitleAndMonths } from "@/components";
+import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard, TitleAndMonths } from "@/components";
 
 // Hooks
 import { useNote, useThemedStyles } from "@/hooks/index";
@@ -41,31 +41,31 @@ const NoteScreen: React.FC = () => {
 
   // States
   const [error, setError] = useState<string | null>(null);
-  const [selectedSemester, setSelectedSemester] = useState<ISemester>();
+  const [selectedSemester, setSelectedSemester] = useState<number>();
   const [selectedMonth, setSelectedMonth] = useState<number>();
 
   // Data Fetching
-  const fetchNotes = useCallback(async () => {
+  const fetchNotes = async () => {
     try {
       if (!selectedStudent) return [];
       return await getNotes(
         selectedStudent.id,
         [NOTE_TYPE.WRITING_QUESTION, NOTE_TYPE.CLASS_TEST, NOTE_TYPE.LEVEL_TEST],
         currentSchoolYear!.id,
-        selectedSemester?.id,
+        selectedSemester,
         selectedMonth,
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notes');
     }
-  }, [selectedStudent, selectedSemester, selectedMonth]);
+  };
 
   const {
     data: notes,
     loading,
     refreshing,
     fetchData: refetchData,
-  } = useDataFetching(fetchNotes, []);
+  } = useDataFetching(fetchNotes, [selectedStudent, selectedSemester, selectedMonth, currentSchoolYear]);
 
   // Computed Data
   const summary: INoteSummaryDTO = useMemo(() => {
@@ -160,17 +160,21 @@ const NoteScreen: React.FC = () => {
             <Pressable
               style={[
                 themedStyles.semesterButton,
-                selectedSemester?.id === item.id && themedStyles.selectedSemesterButton,
+                selectedSemester === item.id && themedStyles.selectedSemesterButton,
               ]}
               onPress={() => {
-                if (selectedSemester?.id === item.id) setSelectedSemester(undefined);
-                else setSelectedSemester(item);
+                if (selectedSemester === item.id) {
+                  setSelectedSemester(undefined);
+                }
+                else {
+                  setSelectedSemester(item.id);
+                }
               }}
             >
               <CsText
                 style={StyleSheet.flatten([
                   themedStyles.semesterButtonText,
-                  selectedSemester?.id === item.id &&
+                  selectedSemester === item.id &&
                     themedStyles.selectedSemesterButtonText,
                 ])}
               >
