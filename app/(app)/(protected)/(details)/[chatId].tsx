@@ -26,6 +26,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAppSelector } from "@/store";
 import { showToast } from "@/helpers/toast/showToast";
 import { supabase } from "@/lib/supabase";
+import type { Database } from "@/lib/supabase/types";
 
 // Message Interface
 interface Message {
@@ -116,28 +117,56 @@ const ConversationDetailScreen: React.FC = () => {
 
   // Add real-time listener
   useEffect(() => {
+    if (!user || !chatId) {
+      console.warn("User or Chat ID not available for subscription.");
+      return;
+    }
+
     const channel = supabase
-      .channel('messages')
-      .on('postgres_changes', {
+      .channel(`messages_for_chat_${chatId}`)
+      .on<Database['public']['Tables']['messages']['Row']>(
+        'postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
         filter: `chat_id=eq.${chatId}`
       }, (payload) => {
-        const newMessage = payload.new as Message;
-        if (newMessage.sender !== user!.id) {
-          setMessages(prev => [...prev, newMessage]);
+        const rawNewMessage = payload.new;
+        
+        if (rawNewMessage.sender_id !== user.id) {
+          // Map the raw data to the local Message interface
+          const formattedMessage: Message = {
+            id: rawNewMessage.id,
+            text: rawNewMessage.content,
+            sender: 'other',
+            // Convert created_at string to Date, handle potential null
+            timestamp: rawNewMessage.created_at ? new Date(rawNewMessage.created_at) : new Date()
+          };
+          // Use functional update to avoid stale state issues
+          setMessages(prevMessages => [...prevMessages, formattedMessage]);
         }
       })
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+           console.error(`Subscription error for chat ${chatId}:`, status, err);
+        }
+     });
 
+    // Cleanup function
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel).catch(err => console.error("Error removing channel:", err));
     };
-  }, [chatId, supabase, user]);
+  }, [chatId, supabase, user?.id]);
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isLastMessage = index === messages.length - 1;
+    const timestampString = item.timestamp instanceof Date && !isNaN(item.timestamp.getTime())
+      ? item.timestamp.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : '...';
+
     return (
       <Animated.View
         style={[
@@ -151,10 +180,7 @@ const ConversationDetailScreen: React.FC = () => {
         <CsCard style={themedStyles.messageCard}>
           <CsText style={themedStyles.messageText}>{item.text}</CsText>
           <CsText style={themedStyles.timestamp}>
-            {item.timestamp.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {timestampString}
           </CsText>
         </CsCard>
       </Animated.View>
