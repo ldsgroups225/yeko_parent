@@ -37,7 +37,7 @@ interface useAuthReturn {
     lastName?: string,
     phone?: string
   ) => Promise<boolean>;
-  login: (email: string, password: string) => Promise<AuthCheckReturn | null>;
+  login: (email: string, password: string) => Promise<AuthCheckReturn>;
   checkAuth: () => Promise<AuthCheckReturn | null>;
   logout: () => Promise<boolean>;
   setPushToken: (userId: string, token: string) => Promise<void>;
@@ -159,17 +159,15 @@ export const useAuth = (): useAuthReturn => {
   const login = async (
     email: string,
     password: string
-  ): Promise<AuthCheckReturn | null> => {
+  ): Promise<AuthCheckReturn> => {
     try {
       setLoading(true);
-      const { error } = await auth.loginWithEmailAndPassword(email, password);
-      if (error) {
-        console.error("[E_AUTH_LOGIN]:", error);
-        return null;
-      }
-      return await checkAuth();
+      await auth.loginWithEmailAndPassword(email, password);
+      const authorizedUserData = await checkAuth();
+
+      if (!authorizedUserData) throw new Error('Vous n\'êtes pas autoriser, seul les compte parent peuvent accédé à cette application');
+      return authorizedUserData
     } catch (error) {
-      console.error("[E_AUTH_LOGIN_ERROR]:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -184,11 +182,9 @@ export const useAuth = (): useAuthReturn => {
   const logout = async (): Promise<boolean> => {
     try {
       setLoading(true);
-      const { error } = await auth.deleteSession();
-      if (error) throw error;
+      await auth.deleteSession();
       return true;
     } catch (error) {
-      console.error("[E_AUTH_LOGOUT]:", error);
       throw error;
     } finally {
       setLoading(false);

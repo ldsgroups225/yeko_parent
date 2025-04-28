@@ -78,16 +78,18 @@ export const auth = {
   async loginWithEmailAndPassword(
     email: string,
     password: string
-  ): Promise<AuthTokenResponsePassword> {
+  ): Promise<void> {
     try {
-      const response = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (response.error) throw new Error(response.error.message);
-      return response;
+      if (error) {
+        console.log(error.message)
+        if (error.message === 'Invalid login credentials') throw new Error("Email ou mot de passe incorrect");
+        else throw new Error('Une erreur est survenue lors de la connexion');
+      }
     } catch (error) {
-      console.error("Error creating session:", error);
       throw error;
     }
   },
@@ -115,11 +117,10 @@ export const auth = {
    * @returns {Promise<{ error: AuthError | null }>} - The result of the sign-out request, with potential errors.
    * @throws {Error} - Throws an error if sign-out fails.
    */
-  async deleteSession(): Promise<{ error: AuthError | null }> {
+  async deleteSession(): Promise<void> {
     try {
-      const response = await supabase.auth.signOut();
-      if (response.error) throw new Error(response.error.message);
-      return response;
+      const { error } = await supabase.auth.signOut({scope: 'local'});
+      if (error) throw new Error(error.message);
     } catch (error) {
       console.error("Error deleting session:", error);
       throw error;

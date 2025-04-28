@@ -92,7 +92,9 @@ const NewConversationModal: React.FC = () => {
       schoolId: selectedStudent.school.id,
       classId: selectedStudent.class.id,
     };
-    const chatData = template === "custom" ? baseData : { ...baseData, topicId: template.id };
+    const chatData = template === "custom"
+      ? { ...baseData, lastMessage: 'Problématique non structurée' }
+      : { ...baseData, topicId: template.id, lastMessage: template.title };
     try {
       const newChat = await createNewChat(chatData);
       router.replace(`/(app)/(protected)/(details)/${newChat.id}`);

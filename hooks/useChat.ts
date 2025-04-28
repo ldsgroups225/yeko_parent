@@ -8,12 +8,14 @@ interface UseChatReturn {
     parentId,
     schoolId,
     classId,
+    lastMessage,
     topicId,
   }: {
     studentId: string;
     parentId: string;
     schoolId: string;
     classId: string;
+    lastMessage: string;
     topicId?: number;
   }) => Promise<Chat>;
   getConversations: (userId: string) => Promise<Conversation[]>
@@ -52,12 +54,14 @@ export const useChat = (): UseChatReturn => {
     parentId,
     schoolId,
     classId,
-    topicId
+    lastMessage,
+    topicId,
   }: {
     studentId: string;
     parentId: string;
     schoolId: string;
     classId: string;
+    lastMessage: string;
     topicId?: number;
   }): Promise<Chat> => {
     setLoading(true);
@@ -68,7 +72,8 @@ export const useChat = (): UseChatReturn => {
         parentId,
         schoolId,
         classId,
-        topicId
+        lastMessage,
+        topicId,
       });
     } catch (err) {
       setError("Failed to create chat.");

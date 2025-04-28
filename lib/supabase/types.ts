@@ -1,3 +1,5 @@
+// lib/supabase/types.ts
+
 export type Json =
   | string
   | number
@@ -167,6 +169,7 @@ export type Database = {
           ended_at: string | null
           id: string
           initiated_by: string | null
+          last_message: string | null
           message_count: number | null
           parent_id: string
           school_id: string
@@ -182,6 +185,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           initiated_by?: string | null
+          last_message?: string | null
           message_count?: number | null
           parent_id: string
           school_id: string
@@ -197,6 +201,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           initiated_by?: string | null
+          last_message?: string | null
           message_count?: number | null
           parent_id?: string
           school_id?: string
@@ -279,6 +284,7 @@ export type Database = {
           grade_id: number
           id: string
           is_active: boolean
+          max_student: number
           name: string
           school_id: string
           series: string | null
@@ -292,6 +298,7 @@ export type Database = {
           grade_id: number
           id?: string
           is_active?: boolean
+          max_student?: number
           name: string
           school_id: string
           series?: string | null
@@ -305,6 +312,7 @@ export type Database = {
           grade_id?: number
           id?: string
           is_active?: boolean
+          max_student?: number
           name?: string
           school_id?: string
           series?: string | null
@@ -2269,6 +2277,7 @@ export type Database = {
           enrollment_status: string | null
           first_name: string | null
           id_number: string | null
+          is_government_affected: boolean | null
           last_name: string | null
           parent_id: string | null
           school_id: string | null
@@ -2447,15 +2456,19 @@ export type Database = {
           publish_date: string
         }[]
       }
+      mark_chat_read: {
+        Args: { chat_id_param: string; user_id_param: string }
+        Returns: undefined
+      }
       process_payment: {
         Args:
+          | { _student_id: string; _amount: number; _payment_method: string }
           | {
               _student_id: string
               _school_id: string
               _amount: number
               _payment_method: string
             }
-          | { _student_id: string; _amount: number; _payment_method: string }
         Returns: Json
       }
       update_existing_class_slugs: {

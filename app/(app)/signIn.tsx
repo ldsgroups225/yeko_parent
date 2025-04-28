@@ -31,6 +31,8 @@ import { formatFullName } from "@/utils/formatting";
 import { type ITheme, spacing, wp } from "@/styles";
 import { IUserDTO } from "@/types/ILoginDTO";
 import { useRouter } from "expo-router";
+import { unknown } from "zod";
+import { ToastColorEnum } from "@/components/ToastMessage/ToastColorEnum";
 
 export default function SignInScreen() {
   // Hooks
@@ -64,15 +66,12 @@ export default function SignInScreen() {
     }
 
     try {
-      const user = await login(email, password);
-      if (!user?.user) {
-        return showToast("Email ou mot de passe incorrect.");
-      }
-      goHomePage(user.user);
+      const auth = await login(email, password);
+      if (!auth.user) throw new Error('Une erreur est survenue lors de la connexion. Veuillez réessayer.');
+      
+      goHomePage(auth.user);
     } catch (error) {
-      showToast(
-        "Une erreur est survenue lors de la connexion. Veuillez réessayer."
-      );
+      showToast((error as Error).message , ToastColorEnum.Error, 7000);
     }
   };
 

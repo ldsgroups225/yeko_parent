@@ -1,6 +1,6 @@
 // app/(app)/(protected)/(details)/[chatId].tsx
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -21,8 +21,8 @@ import { useChat, useThemedStyles } from "@/hooks";
 
 // Types and Styles
 import { type ITheme, shadows, spacing  } from "@/styles";
-import { Chat, Conversation } from "@/services";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { chat as chatService } from "@/services";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { useAppSelector } from "@/store";
 import { showToast } from "@/helpers/toast/showToast";
 import { supabase } from "@/lib/supabase";
@@ -157,6 +157,33 @@ const ConversationDetailScreen: React.FC = () => {
       supabase.removeChannel(channel).catch(err => console.error("Error removing channel:", err));
     };
   }, [chatId, supabase, user?.id]);
+
+  // Effect to mark messages as read when the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const markRead = async () => {
+        if (user && chatId && isActive) {
+          try {
+            await chatService.markMessagesAsRead(chatId, user.id);
+            // Optionally: Trigger a refetch on DiscussionScreen if needed,
+            // though ideally the count calculation handles this.
+          } catch (err) {
+            console.error("Failed to mark messages as read:", err);
+          }
+        }
+      };
+
+      // Mark as read shortly after focusing to allow messages to potentially load
+      const timeoutId = setTimeout(markRead, 500); // Delay slightly
+
+      return () => {
+        isActive = false;
+        clearTimeout(timeoutId);
+      };
+    }, [chatId, user?.id])
+  );
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isLastMessage = index === messages.length - 1;

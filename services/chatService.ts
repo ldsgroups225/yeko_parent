@@ -56,6 +56,24 @@ export interface ChatWithDetails extends Chat {
 }
 
 export const chat = {
+  async markMessagesAsRead(chatId: string, userId: string): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('mark_chat_read', {
+        chat_id_param: chatId,
+        user_id_param: userId
+      });
+
+      if (error) {
+        console.error("Error calling mark_chat_read RPC:", error);
+        // Decide if you want to throw or just log
+        // throw error;
+      }
+    } catch (error) {
+      console.error("Exception marking messages as read:", error);
+      // throw error;
+    }
+  },
+
   async getStudentMaiTeacher(studentId: string): Promise<string | null> {
     try {
       const { data, error } = await supabase
@@ -97,12 +115,14 @@ export const chat = {
     parentId,
     schoolId,
     classId,
+    lastMessage,
     topicId,
   }: {
       studentId: string;
       parentId: string;
       schoolId: string;
       classId: string;
+      lastMessage: string;
       topicId?: number;
     }): Promise<Chat> {
     try {
@@ -119,6 +139,7 @@ export const chat = {
         class_id: classId,
         school_id: schoolId,
         teacher_id: teacherId,
+        last_message: lastMessage,
       })
       .select()
       .single();
@@ -171,6 +192,7 @@ export const chat = {
         chat_topics: ChatTopicInfo | null;
         teacher: UserInfo | null;
         parent: UserInfo | null; 
+        last_message: string | null; 
         created_at: string;
       };
       type MessageData = {
@@ -192,7 +214,7 @@ export const chat = {
       const { data, error } = await supabase
         .from('chats')
         .select(`
-          id,
+          id, last_message,
           chat_topics(title, default_message),
           teacher: users!chats_teacher_id_fkey(first_name, last_name),
           parent: users!chats_parent_id_fkey(first_name, last_name),
@@ -205,7 +227,7 @@ export const chat = {
 
       if (error) {
         console.error("Error fetching chats:", error);
-        throw error;
+        throw new Error('Erreur lors de la récupération des messages')
       };
 
       if (!data) {
@@ -327,19 +349,25 @@ export const chat = {
     }
   },
 
-  async createMessage({senderId, chatId, content}: {senderId: string, chatId: string, content: string}): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .insert([{
-          chat_id: chatId,
-          sender_id: senderId,
-          content: content.trim(),
-        }]);
-      
-      if (error) throw error;
-    } catch (error) {
-      throw error;
-    }
-  }
+  async createMessage({ senderId, chatId, content }: { senderId: string, chatId: string, content: string }): Promise<void> {
+    const messageQs = supabase
+      .from('messages')
+      .insert([{
+        chat_id: chatId,
+        sender_id: senderId,
+        content: content.trim(),
+      }])
+    
+    const lastMessageUpdQs = supabase
+      .from('chats')
+      .update({'last_message': content})
+      .eq('id', chatId)
+    
+    const [
+      {error: messageError},
+      {error: lastMmessageError},
+    ] = await Promise.all([messageQs, lastMessageUpdQs])
+    if (messageError || lastMmessageError)
+      throw messageError || lastMmessageError
+  },
 };
