@@ -143,8 +143,8 @@ const Home: React.FC = () => {
           color={theme.primary}
         />
       ),
-      label: 'Infos et scolarité',
-      onPress: () => router.push('/(app)/(protected)/(details)/eventScreen')
+      label: 'Scolarité',
+      onPress: () => router.push('/(app)/(protected)/(details)/paymentScreen')
     },
   ];
 
