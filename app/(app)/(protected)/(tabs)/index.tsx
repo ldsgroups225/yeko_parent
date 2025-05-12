@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  ScrollView,
 } from "react-native";
 
 // Components
@@ -138,7 +139,7 @@ const Home: React.FC = () => {
     {
       icon: (
         <Ionicons
-          name="information-circle-outline"
+          name="cash-outline"
           size={24}
           color={theme.primary}
         />
@@ -236,11 +237,16 @@ const Home: React.FC = () => {
 
       {/* Animated Menu Items */}
       <Animated.View
-        style={[themedStyles.menuContainer, menuItemsAnimatedStyle]}
+        style={[menuItemsAnimatedStyle, { flex: 1 }]}
       >
-        {menuItems.map((item, index) => (
-          <MenuItem key={index} {...item} />
-        ))}
+        <ScrollView 
+          contentContainerStyle={themedStyles.menuContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {menuItems.map((item, index) => (
+            <MenuItem key={index} {...item} />
+          ))}
+        </ScrollView>
       </Animated.View>
     </ScreenWrapper>
   );
@@ -309,13 +315,13 @@ const styles = (theme: ITheme) =>
       color: "rgba(255, 255, 255, 0.8)",
     },
     menuContainer: {
-      flex: 1,
       flexDirection: "row",
       flexWrap: "wrap",
       justifyContent: "space-around",
       alignItems: "flex-start",
       paddingHorizontal: spacing.md,
       paddingTop: spacing.lg,
+      paddingBottom: spacing.lg,
     },
     logo: {
       width: 80,
