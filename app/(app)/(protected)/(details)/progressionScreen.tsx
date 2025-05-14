@@ -35,13 +35,16 @@ const ProgressionScreen: React.FC = () => {
     const classId = selectedStudent.class.id;
     
     try {
-      const {data, subjectSummary} = await progression.getProgressionConfig(classId);
-      
+      const {groupedData, subjectsWithProgress, subjectSummary} = await progression.getProgressionConfig(classId);
+
       if (!selectedSubject && subjectSummary) {
         setSelectedSubject(subjectSummary);
       }
-      
-      return data;
+
+      setSubjectsWithProgress(subjectsWithProgress);
+      setGroupedData(groupedData);
+
+      return groupedData;
     } catch (error) {
       console.error('Error fetching progression data:', error);
       setSubjectsWithProgress([]);

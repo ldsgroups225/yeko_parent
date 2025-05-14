@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { GroupedProgressionData, SubjectWithProgression, ProgressionConfig, LessonWithProgress } from '@/types/IProgressionDTO';
 
 export const progression = {
-  async getProgressionConfig(classId: string): Promise<{ data: GroupedProgressionData, subjectSummary?: string }> {
+  async getProgressionConfig(classId: string): Promise<{ groupedData: GroupedProgressionData, subjectsWithProgress: SubjectWithProgression[], subjectSummary?: string }> {
     let subjectsWithProgress: SubjectWithProgression[] = [];
     let groupedData: GroupedProgressionData = {};
 
@@ -15,13 +15,13 @@ export const progression = {
         .eq('class_id', classId);
         
       if (reportsError) throw reportsError;
-      
+
       const configIds = reportsData.map(report => report.lessons_progress_reports_config_id);
-      
+
       if (configIds.length === 0) {
         subjectsWithProgress = [];
         groupedData = {};
-        return { data: groupedData };
+        return { groupedData, subjectsWithProgress };
       }
 
       const { data: configData, error: configError } = await supabase
@@ -86,10 +86,10 @@ export const progression = {
       groupedData = processedData;
 
       if (subjectsWithProgress.length === 0) {
-        return { data: processedData, subjectSummary: undefined};
+        return { groupedData, subjectsWithProgress, subjectSummary: undefined};
       }
 
-      return { data: processedData};
+      return { groupedData, subjectsWithProgress, subjectSummary: subjectsWithProgress[0].id};
     } catch (error) {
       console.error("Error fetching progression config:", error);
       throw error;
