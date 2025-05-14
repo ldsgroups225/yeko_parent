@@ -147,9 +147,22 @@ const Home: React.FC = () => {
       label: 'Scolarité',
       onPress: () => router.push('/(app)/(protected)/(details)/paymentScreen')
     },
+    {
+      icon: (
+        <Ionicons name="bar-chart-outline" size={24} color={theme.primary} />
+      ),
+      label: 'Progression',
+      onPress: () => router.push('/(app)/(protected)/(details)/progressionScreen')
+    },
+    {
+      icon: (
+        <Ionicons name="information-circle-outline" size={24} color={theme.primary} />
+      ),
+      label: 'Infos scolaire',
+      onPress: () => router.push('/(app)/(protected)/(details)/eventScreen')
+    },
   ];
 
- 
   return (
     <ScreenWrapper>
       <StatusBar hidden={false} backgroundColor={theme.gray200} />
