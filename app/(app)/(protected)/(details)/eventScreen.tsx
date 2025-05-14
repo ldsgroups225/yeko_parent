@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { format, parseISO, isPast, isToday, isTomorrow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { event as schoolEvent } from '@/services/eventService';
 
 import {
   CsText,
@@ -17,202 +18,9 @@ import {
 } from "@/components";
 
 import { useTheme, useThemedStyles } from "@/hooks";
-import { type ITheme, shadows, spacing, typography } from "@/styles"; // Ajout de typography
+import { type ITheme, shadows, spacing, typography } from "@/styles";
 import borderRadius from "@/styles/borderRadius";
-
-// Interface EventData et données mockées
-interface EventData {
-    id: number;
-    title: string;
-    description: string;
-    date: string;               // format YYYY-MM-DD
-    isClassEvent: boolean;      // true si c'est un événement ciblant une classe
-    isDone: boolean;            // true si l'événement est passé
-    priority: 'high' | 'medium' | 'low';
-}
-
-const mockEvents: EventData[] = [
-  {
-    id: 1,
-    title: "Bal de fin d'année",
-    description: "Soirée dansante pour célébrer la fin de l'année scolaire. N'oubliez pas votre tenue de soirée !",
-    date: "2025-06-20",
-    isClassEvent: false,
-    isDone: false,
-    priority: "medium",
-  },
-  {
-    id: 2,
-    title: "Examen blanc - Mathématiques",
-    description: "Simulation d'examen pour préparer le Bac. Durée : 4 heures. Calculatrice autorisée.",
-    date: "2025-05-30",
-    isClassEvent: true,
-    isDone: false,
-    priority: "high",
-  },
-  {
-    id: 3,
-    title: "Devoir de classe - Français",
-    description: "Rédaction sur le thème du roman réaliste. À rendre pour le début du cours.",
-    date: "2025-05-18",
-    isClassEvent: true,
-    isDone: false,
-    priority: "medium",
-  },
-  {
-    id: 4,
-    title: "Séminaire orientation post-bac",
-    description: "Présentation des filières universitaires et BTS. Ouvert à tous les élèves de Terminale.",
-    date: "2025-06-05",
-    isClassEvent: false,
-    isDone: false,
-    priority: "low",
-  },
-  {
-    id: 5,
-    title: "Alerte scolarité - Retard de paiement",
-    description: "Rappel : régulariser les frais de scolarité avant le 25 mai pour éviter toute interruption de service.",
-    date: "2025-05-25",
-    isClassEvent: false,
-    isDone: false,
-    priority: "high",
-  },
-  {
-    id: 6,
-    title: "Convocation parents - Comportement élève",
-    description: "Entretien avec le coordinateur suite à incivilités en classe. Votre présence est requise.",
-    date: "2025-05-22",
-    isClassEvent: false,
-    isDone: false,
-    priority: "high",
-  },
-  {
-    id: 7,
-    title: "Devoir maison - Histoire-Géographie",
-    description: "Etude de cas sur la colonisation en Afrique. À rendre sur la plateforme en ligne.",
-    date: "2025-05-21",
-    isClassEvent: true,
-    isDone: false,
-    priority: "low",
-  },
-  {
-    id: 8,
-    title: "Examen blanc - Physique",
-    description: "Examen blanc session P1 pour les classes de Première. Programme : Mécanique et Optique.",
-    date: "2025-05-28",
-    isClassEvent: true,
-    isDone: false,
-    priority: "high",
-  },
-  {
-    id: 9,
-    title: "Réunion parents-professeurs",
-    description: "Bilan du 2ᵉ trimestre et perspectives pour le 3ᵉ. Inscription préalable obligatoire.",
-    date: "2025-06-10",
-    isClassEvent: false,
-    isDone: false,
-    priority: "medium",
-  },
-  {
-    id: 10,
-    title: "Devoir de niveau - Anglais",
-    description: "Test de compréhension écrite niveau A2. Apportez vos écouteurs.",
-    date: "2025-05-19",
-    isClassEvent: true,
-    isDone: false,
-    priority: "medium",
-  },
-  {
-    id: 11,
-    title: "Journée portes ouvertes",
-    description: "Découverte des ateliers et laboratoires de l’école. Venez nombreux !",
-    date: "2025-06-12",
-    isClassEvent: false,
-    isDone: false,
-    priority: "low",
-  },
-  {
-    id: 12,
-    title: "Examen blanc - Chimie",
-    description: "Examen blanc session C1 pour les classes de Terminale. Programme : Chimie organique.",
-    date: "2025-05-29",
-    isClassEvent: true,
-    isDone: false,
-    priority: "high",
-  },
-  {
-    id: 13,
-    title: "Atelier prévention santé",
-    description: "Intervention d’un infirmier sur l’hygiène de vie et les addictions.",
-    date: "2025-05-27",
-    isClassEvent: false,
-    isDone: false,
-    priority: "low",
-  },
-  {
-    id: 14,
-    title: "Concours d’orthographe",
-    description: "Compétition inter-classes pour tous les niveaux. Lots à gagner pour les meilleurs.",
-    date: "2025-06-08",
-    isClassEvent: true,
-    isDone: false,
-    priority: "medium",
-  },
-  {
-    id: 15,
-    title: "Alerte scolarité - Absences fréquentes",
-    description: "Signalement des absences répétées de votre enfant. Merci de justifier rapidement.",
-    date: "2025-05-20",
-    isClassEvent: false,
-    isDone: false,
-    priority: "high",
-  },
-  {
-    id: 16,
-    title: "Soutien scolaire",
-    description: "Séances de rattrapage en petits groupes pour les élèves en difficulté. Inscription auprès du professeur principal.",
-    date: "2025-05-23",
-    isClassEvent: true,
-    isDone: false,
-    priority: "medium",
-  },
-  {
-    id: 17,
-    title: "Convocation parents - Retard répété",
-    description: "Entretien suite aux retards réguliers de votre enfant. Merci de prendre contact avec le secrétariat.",
-    date: "2025-05-24",
-    isClassEvent: false,
-    isDone: false,
-    priority: "high",
-  },
-  {
-    id: 18,
-    title: "Spectacle de fin d’année",
-    description: "Représentation théâtrale des élèves de la 3ᵉ à la Terminale. Vente des billets à l'entrée.",
-    date: "2025-06-18",
-    isClassEvent: false,
-    isDone: false,
-    priority: "medium",
-  },
-  {
-    id: 19,
-    title: "Devoir de classe - SVT",
-    description: "Exercice sur la génétique et l’hérédité. Documents autorisés.",
-    date: "2025-05-17",
-    isClassEvent: true,
-    isDone: true,
-    priority: "low",
-  },
-  {
-    id: 20,
-    title: "Examen blanc - Philosophie",
-    description: "Simulation d’épreuve pour les Terminales L. Dissertation et commentaire de texte.",
-    date: "2025-05-31",
-    isClassEvent: true,
-    isDone: false,
-    priority: "high",
-  },
-];
+import { IEventDTO } from '@/types/IEventDTO';
 
 const PAGE_SIZE = 10;
 
@@ -221,31 +29,16 @@ const EventScreen: React.FC = () => {
   const theme = useTheme();
   const themedStyles = useThemedStyles(styles);
 
-  const [allEvents, setAllEvents] = useState<EventData[]>([]);
+  const [allEvents, setAllEvents] = useState<IEventDTO[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreData, setHasMoreData] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchEventsFromSource = useCallback(async (pageToFetch: number): Promise<EventData[]> => {
+  const fetchEventsFromSource = useCallback(async (pageToFetch: number): Promise<IEventDTO[]> => {
     // Simuler une récupération de données avec pagination
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const today = new Date();
-        // Simuler le traitement initial des événements (marquer isDone)
-        // Dans une vraie application, cela serait fait côté backend ou une seule fois au chargement initial
-        const allProcessedEvents = mockEvents.map(event => ({
-          ...event,
-          isDone: isPast(parseISO(event.date)) && !isToday(parseISO(event.date))
-        }));
-
-        const startIndex = (pageToFetch - 1) * PAGE_SIZE;
-        const endIndex = startIndex + PAGE_SIZE;
-        const paginatedEvents = allProcessedEvents.slice(startIndex, endIndex);
-        resolve(paginatedEvents);
-      }, 700);
-    });
+    return schoolEvent.getAllEvents({page: pageToFetch, pageSize: PAGE_SIZE});
   }, []);
 
   const loadEvents = useCallback(async (isRefresh = false) => {
@@ -326,7 +119,7 @@ const EventScreen: React.FC = () => {
     return format(eventDate, "eeee dd MMMM yyyy", { locale: fr });
   };
 
-  const renderEventItem = ({ item }: { item: EventData }) => {
+  const renderEventItem = ({ item }: { item: IEventDTO }) => {
     const priorityStyle = getPriorityStyle(item.priority);
     const cardStyle = StyleSheet.flatten([
       themedStyles.eventCard,
@@ -518,22 +311,22 @@ const styles = (theme: ITheme) => StyleSheet.create({
       marginBottom: spacing.md,
       padding: spacing.md,
       borderLeftWidth: 6, // Bordure plus épaisse
-      backgroundColor: theme.card, // Assurer que la carte a un fond
-      ...shadows.small, // Ajouter une légère ombre
+      backgroundColor: theme.card,
+      ...shadows.small,
       borderRadius: borderRadius.medium,
     },
     doneEventCard: {
       backgroundColor: theme.gray200,
-      opacity: 0.75, // Un peu moins transparent
+      opacity: 0.75,
     },
-    doneEventTextDecoration: { // Style spécifique pour le texte barré
+    doneEventTextDecoration: {
       textDecorationLine: 'line-through',
     },
     doneOverlayTextContainer: {
       position: 'absolute',
       top: spacing.sm,
       right: spacing.sm,
-      backgroundColor: theme.gray500, // Couleur plus neutre
+      backgroundColor: theme.gray500,
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.xs,
       borderRadius: borderRadius.small,
@@ -554,8 +347,8 @@ const styles = (theme: ITheme) => StyleSheet.create({
     },
     eventTitle: {
       flex: 1,
-      fontSize: 17, // Un peu plus grand
-      fontWeight: '600', // Semi-gras
+      fontSize: 17,
+      fontWeight: '600',
     },
     classEventBadge: {
       flexDirection: 'row',
@@ -563,25 +356,25 @@ const styles = (theme: ITheme) => StyleSheet.create({
       backgroundColor: theme.primaryLight + '30',
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.xs,
-      borderRadius: borderRadius.large, // Plus arrondi
+      borderRadius: borderRadius.large,
       marginLeft: spacing.sm,
     },
     classEventText: {
-      color: theme.primaryDark, // Texte plus foncé pour le badge
-      fontSize: 11, // Plus petit
+      color: theme.primaryDark,
+      fontSize: 11,
       marginLeft: spacing.xs,
       fontWeight: '600',
     },
     eventDescription: {
       color: theme.text,
-      marginBottom: spacing.md, // Plus d'espace en bas
+      marginBottom: spacing.md,
       fontSize: 14,
-      lineHeight: 21, // Hauteur de ligne améliorée
+      lineHeight: 21,
     },
     eventFooter: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: spacing.sm, // Plus d'espace en haut
+      marginTop: spacing.sm,
       borderTopWidth: 1,
       borderTopColor: theme.border,
       paddingTop: spacing.sm,
@@ -589,7 +382,7 @@ const styles = (theme: ITheme) => StyleSheet.create({
     eventDate: {
       color: theme.textLight,
       fontSize: 13,
-      marginLeft: spacing.sm, // Plus d'espace
+      marginLeft: spacing.sm,
       fontStyle: 'italic',
     },
     emptyState: {
@@ -603,7 +396,7 @@ const styles = (theme: ITheme) => StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: spacing.xl,
-        marginTop: spacing.xxl, // Plus d'espace si la liste est complètement vide
+        marginTop: spacing.xxl,
     },
     emptyListText: {
         marginTop: spacing.md,
