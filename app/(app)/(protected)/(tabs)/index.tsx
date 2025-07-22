@@ -15,11 +15,11 @@ import CsText from "@/components/CsText";
 import { MenuItem } from "@/components/MenuItem";
 
 // Hooks
-import {useAuth, useTheme, useThemedStyles} from "@/hooks/index";
+import { useAuth, useTheme, useThemedStyles } from "@/hooks/index";
 import { useAppSelector } from "@/store";
 
 // Redux
-import {loggedOut, setSelectedStudent} from "@/store/appSlice";
+import { loggedOut, setSelectedStudent } from "@/store/appSlice";
 
 // Types
 import { type ITheme, spacing } from "@/styles";
@@ -71,7 +71,7 @@ const Home: React.FC = () => {
 
     // Set expo token
     if (user && token)
-    setPushToken(user.id, token).then(() => {});
+      setPushToken(user.id, token).then(() => { });
   }, [dispatch, user]);
 
   // If user is not logged in, redirect to login
@@ -199,7 +199,7 @@ const Home: React.FC = () => {
                       {formatFullName(selectedChild?.lastName ?? "", selectedChild?.firstName ?? "")}
                     </CsText>
                     <CsText variant="caption" style={themedStyles.userRole}>
-                      {selectedChild?.class.name}
+                      {selectedChild?.class.name} - ({selectedChild?.idNumber})
                     </CsText>
                   </View>
                   <Ionicons name="chevron-down" size={20} color="white" />
@@ -235,7 +235,7 @@ const Home: React.FC = () => {
                             variant="caption"
                             style={themedStyles.childClass}
                           >
-                            {child.class.name}
+                            {child.class.name} - ({child.idNumber})
                           </CsText>
                         </View>
                       </TouchableOpacity>
@@ -252,7 +252,7 @@ const Home: React.FC = () => {
       <Animated.View
         style={[menuItemsAnimatedStyle, { flex: 1 }]}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={themedStyles.menuContainer}
           showsVerticalScrollIndicator={false}
         >
