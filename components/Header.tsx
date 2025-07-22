@@ -1,98 +1,82 @@
-import { FontAwesome5 } from '@expo/vector-icons';
-import { useThemedStyles } from '@/hooks';
-import { spacing, typography } from '@/styles';
-import React from 'react';
 import {
   Dimensions,
-  Image,
-  ImageBackground,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
 } from 'react-native';
-import colors from '@/styles/colors';
+import { IStudentDTO } from '@/types/ILoginDTO';
+import React, { } from "react";
+import { StyleSheet, View, Platform } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+import {
+  CsText,
+} from "@/components";
+import { useTheme, useThemedStyles } from "@/hooks";
+import { type ITheme, shadows, spacing, typography } from "@/styles";
+import borderRadius from "@/styles/borderRadius";
+import { RootState } from '@/store';
+import { useSelector } from 'react-redux';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const ASPECT_RATIO = 16 / 9; // Adjust this to match your image's aspect ratio
-const IMAGE_HEIGHT = SCREEN_WIDTH / ASPECT_RATIO;
 
-export const Header: React.FC = () => {
+Dimensions.get('window');
+
+interface Props {
+  title: string;
+  children?: React.ReactNode;
+}
+
+export const Header: React.FC<Props> = ({ children, title }) => {
+  const theme = useTheme();
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
+  const selectedStudent = useSelector((state: RootState) => state.AppReducer.selectedStudent);
+
   return (
-    <View style={themedStyles.headerContainer}>
-      <ImageBackground
-        source={require('@/assets/images/school-background.jpg')}
-        style={themedStyles.headerBackground}
-        resizeMode="cover"
-      >
-        <View style={themedStyles.overlay} />
-        <View style={themedStyles.headerContent}>
-          <Image source={require('@/assets/images/yeko-logo.png')} style={themedStyles.logo} />
-          <TouchableOpacity style={themedStyles.menuButton}>
-            <FontAwesome5 name="bars" size={24} color={colors.white} />
-          </TouchableOpacity>
+    <View style={themedStyles.header}>
+      <CsText variant="h1" style={themedStyles.headerTitleText}>{title}</CsText>
+      {selectedStudent && (
+        <View style={themedStyles.studentInfoContainer}>
+          <Ionicons name="person-circle-outline" size={20} color={theme.background} style={{ marginRight: spacing.xs }} />
+          <CsText variant="body" style={themedStyles.studentInfoText}>
+            {selectedStudent.firstName} {selectedStudent.lastName} - {selectedStudent.class.name}
+          </CsText>
         </View>
-        <View style={themedStyles.profileContainer}>
-          <Image
-            source={require('@/assets/images/profile-pic.webp')}
-            style={themedStyles.profilePic}
-          />
-          <Text style={themedStyles.profileName}>TODO</Text>
-        </View>
-      </ImageBackground>
-      <View style={themedStyles.orangeBar} />
+      )}
+
+      {children}
     </View>
   );
 };
 
-const styles = () =>
+const styles = (theme: ITheme) =>
   StyleSheet.create({
-    headerContainer: {
-      height: IMAGE_HEIGHT,
-      maxHeight: SCREEN_HEIGHT * 0.4, // Limit to 40% of screen height
+    header: {
+      backgroundColor: theme.primary,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      paddingTop: Platform.OS === 'ios' ? spacing.lg + Constants.statusBarHeight : spacing.lg,
+      borderBottomLeftRadius: borderRadius.large,
+      borderBottomRightRadius: borderRadius.large,
+      rowGap: spacing.md,
+      ...shadows.medium,
     },
-    headerBackground: {
-      width: '100%',
-      height: '100%',
-      justifyContent: 'space-between',
+    headerTitleText: {
+      ...typography.h1, // Utilisation de h1 pour le titre principal
+      color: theme.background,
+      paddingTop: spacing.md,
+      marginBottom: spacing.sm,
+      textAlign: 'center',
     },
-    overlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.3)', // Add a slight dark overlay for better text visibility
-    },
-    headerContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      padding: spacing.md,
-    },
-    logo: {
-      width: 80,
-      height: 40,
-      resizeMode: 'contain',
-    },
-    menuButton: {
-      padding: spacing.sm,
-    },
-    profileContainer: {
+    studentInfoContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: spacing.md,
+      justifyContent: 'center',
+      backgroundColor: theme.primaryLight + '33', // Léger fond pour contraster
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      borderRadius: borderRadius.medium,
     },
-    profilePic: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: spacing.sm,
-    },
-    profileName: {
-      ...typography.NORMAL,
-      color: colors.white,
-    },
-    orangeBar: {
-      height: 4,
-      backgroundColor: colors.secondary,
+    studentInfoText: {
+      color: theme.background,
+      fontSize: 15,
+      fontWeight: '500',
     },
   });

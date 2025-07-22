@@ -25,6 +25,7 @@ import { shadows, spacing, type ITheme } from "@/styles";
 
 // Utils
 import { formatDate, groupBy } from "@/utils";
+import { Header } from "@/components/Header";
 
 const AttendanceScreen: React.FC = () => {
   // Hooks and Redux
@@ -116,11 +117,11 @@ const AttendanceScreen: React.FC = () => {
 
   return (
     <View style={themedStyles.container}>
-      <TitleAndMonths
+      <Header
         title="Ponctualité"
-        selectedMonth={selectedMonth}
-        onMonthChange={handleMonthChange}
-      />
+      >
+
+      </Header>
       <AnimatedFlatList
         style={themedStyles.attendanceList}
         data={groupedAttendances}

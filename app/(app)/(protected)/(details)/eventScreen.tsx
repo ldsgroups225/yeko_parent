@@ -1,6 +1,6 @@
 // app/(app)/(protected)/(details)/eventScreen.tsx
 
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View, Platform, SectionList, ActivityIndicator } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
@@ -21,11 +21,11 @@ import { useTheme, useThemedStyles } from "@/hooks";
 import { type ITheme, shadows, spacing, typography } from "@/styles";
 import borderRadius from "@/styles/borderRadius";
 import { IEventDTO } from '@/types/IEventDTO';
+import { Header } from "@/components/Header";
 
 const PAGE_SIZE = 10;
 
 const EventScreen: React.FC = () => {
-  const selectedStudent = useSelector((state: RootState) => state.AppReducer.selectedStudent);
   const theme = useTheme();
   const themedStyles = useThemedStyles(styles);
 
@@ -38,7 +38,7 @@ const EventScreen: React.FC = () => {
 
   const fetchEventsFromSource = useCallback(async (pageToFetch: number): Promise<IEventDTO[]> => {
     // Simuler une récupération de données avec pagination
-    return schoolEvent.getAllEvents({page: pageToFetch, pageSize: PAGE_SIZE});
+    return schoolEvent.getAllEvents({ page: pageToFetch, pageSize: PAGE_SIZE });
   }, []);
 
   const loadEvents = useCallback(async (isRefresh = false) => {
@@ -70,10 +70,6 @@ const EventScreen: React.FC = () => {
       setIsRefreshing(false);
     }
   }, [fetchEventsFromSource, currentPage]);
-
-  useEffect(() => {
-    loadEvents(true); // Load initial data
-  }, [selectedStudent]); // Re-fetch if student changes
 
   const handleRefresh = () => {
     loadEvents(true);
@@ -131,15 +127,15 @@ const EventScreen: React.FC = () => {
       { color: item.isDone ? theme.textLight : priorityStyle.titleColor }, // Adjust color if done
       item.isDone && themedStyles.doneEventTextDecoration,
     ]);
-     const descriptionStyle = StyleSheet.flatten([
+    const descriptionStyle = StyleSheet.flatten([
       themedStyles.eventDescription,
       item.isDone && themedStyles.doneEventTextDecoration,
-      item.isDone && {color: theme.textLight}
+      item.isDone && { color: theme.textLight }
     ]);
     const dateStyle = StyleSheet.flatten([
       themedStyles.eventDate,
       item.isDone && themedStyles.doneEventTextDecoration,
-       item.isDone && {color: theme.textLight}
+      item.isDone && { color: theme.textLight }
     ]);
 
 
@@ -164,7 +160,7 @@ const EventScreen: React.FC = () => {
             {formatDateDisplay(item.date)}
           </CsText>
         </View>
-         {item.isDone && (
+        {item.isDone && (
           <View style={themedStyles.doneOverlayTextContainer}>
             <CsText style={themedStyles.doneOverlayText}>TERMINÉ</CsText>
           </View>
@@ -176,9 +172,9 @@ const EventScreen: React.FC = () => {
   const groupedEvents = useMemo(() => {
     if (!allEvents) return [];
     const upcoming = allEvents.filter(event => !event.isDone)
-                         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const done = allEvents.filter(event => event.isDone)
-                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const sections = [];
     if (upcoming.length > 0) {
@@ -195,38 +191,23 @@ const EventScreen: React.FC = () => {
 
   if (!loading && allEvents.length === 0 && !isRefreshing) return (
     <View style={themedStyles.container}>
-         <View style={themedStyles.header}>
-            <CsText variant="h1" style={themedStyles.headerTitleText}>Événements & Avis</CsText>
-            {selectedStudent && (
-            <View style={themedStyles.studentInfoContainer}>
-                <Ionicons name="person-circle-outline" size={20} color={theme.background} style={{marginRight: spacing.xs}} />
-                <CsText variant="body" style={themedStyles.studentInfoText}>
-                    {selectedStudent.firstName} {selectedStudent.lastName} - {selectedStudent.class.name}
-                </CsText>
-            </View>
-            )}
-        </View>
-        <View style={themedStyles.emptyState}>
-            <Ionicons name="calendar-outline" size={60} color={theme.textLight} />
-            <CsText style={themedStyles.emptyListText}>Aucun événement programmé pour le moment.</CsText>
-            <CsButton title="Actualiser" onPress={handleRefresh} style={{ marginTop: spacing.lg }} />
-        </View>
+      <Header
+        title="Événements & Avis"
+      />
+
+      <View style={themedStyles.emptyState}>
+        <Ionicons name="calendar-outline" size={60} color={theme.textLight} />
+        <CsText style={themedStyles.emptyListText}>Aucun événement programmé pour le moment.</CsText>
+        <CsButton title="Actualiser" onPress={handleRefresh} style={{ marginTop: spacing.lg }} />
+      </View>
     </View>
   );
 
   return (
     <View style={themedStyles.container}>
-        <View style={themedStyles.header}>
-            <CsText variant="h1" style={themedStyles.headerTitleText}>Événements & Avis</CsText>
-            {selectedStudent && (
-            <View style={themedStyles.studentInfoContainer}>
-                <Ionicons name="person-circle-outline" size={20} color={theme.background} style={{marginRight: spacing.xs}} />
-                <CsText variant="body" style={themedStyles.studentInfoText}>
-                    {selectedStudent.firstName} {selectedStudent.lastName} - {selectedStudent.class.name}
-                </CsText>
-            </View>
-            )}
-        </View>
+      <Header
+        title="Événements & Avis"
+      />
 
       {groupedEvents.length > 0 ? (
         <SectionList
@@ -245,11 +226,11 @@ const EventScreen: React.FC = () => {
           ListFooterComponent={loadingMore ? <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: spacing.md }} /> : null}
         />
       ) : (
-         !loading && !isRefreshing && ( // Only show empty state if not loading or refreshing
-            <View style={themedStyles.emptyListContainer}>
-                <Ionicons name="calendar-outline" size={60} color={theme.textLight} />
-                <CsText style={themedStyles.emptyListText}>Aucun événement trouvé.</CsText>
-            </View>
+        !loading && !isRefreshing && ( // Only show empty state if not loading or refreshing
+          <View style={themedStyles.emptyListContainer}>
+            <Ionicons name="calendar-outline" size={60} color={theme.textLight} />
+            <CsText style={themedStyles.emptyListText}>Aucun événement trouvé.</CsText>
+          </View>
         )
       )}
     </View>
@@ -257,153 +238,124 @@ const EventScreen: React.FC = () => {
 };
 
 const styles = (theme: ITheme) => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.background,
-      paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0,
-    },
-    header: {
-      backgroundColor: theme.primary,
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.md,
-      paddingTop: Platform.OS === 'ios' ? spacing.lg + Constants.statusBarHeight : spacing.lg,
-      borderBottomLeftRadius: borderRadius.large,
-      borderBottomRightRadius: borderRadius.large,
-      ...shadows.medium,
-    },
-    headerTitleText: {
-        ...typography.h1, // Utilisation de h1 pour le titre principal
-        color: theme.background,
-        marginBottom: spacing.sm,
-        textAlign: 'center',
-    },
-    studentInfoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: theme.primaryLight + '33', // Léger fond pour contraster
-        paddingVertical: spacing.xs,
-        paddingHorizontal: spacing.sm,
-        borderRadius: borderRadius.medium,
-    },
-    studentInfoText: {
-        color: theme.background,
-        fontSize: 15,
-        fontWeight: '500',
-    },
-    listContentContainer: {
-      paddingHorizontal: spacing.md,
-      paddingBottom: spacing.lg,
-      paddingTop: spacing.md,
-    },
-    sectionHeader: {
-      fontSize: 20, // Augmentation de la taille
-      fontWeight: '700', // Plus gras
-      color: theme.primaryDark, // Couleur plus foncée
-      marginTop: spacing.lg,
-      marginBottom: spacing.md,
-      paddingHorizontal: spacing.xs,
-      borderBottomWidth: 2,
-      borderBottomColor: theme.primaryLight,
-      paddingBottom: spacing.sm,
-    },
-    eventCard: {
-      marginBottom: spacing.md,
-      padding: spacing.md,
-      borderLeftWidth: 6, // Bordure plus épaisse
-      backgroundColor: theme.card,
-      ...shadows.small,
-      borderRadius: borderRadius.medium,
-    },
-    doneEventCard: {
-      backgroundColor: theme.gray200,
-      opacity: 0.75,
-    },
-    doneEventTextDecoration: {
-      textDecorationLine: 'line-through',
-    },
-    doneOverlayTextContainer: {
-      position: 'absolute',
-      top: spacing.sm,
-      right: spacing.sm,
-      backgroundColor: theme.gray500,
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.xs,
-      borderRadius: borderRadius.small,
-    },
-    doneOverlayText: {
-        color: theme.background,
-        fontWeight: 'bold',
-        fontSize: 10,
-        textTransform: 'uppercase',
-    },
-    eventHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: spacing.sm,
-    },
-    priorityIcon: {
-      marginRight: spacing.sm,
-    },
-    eventTitle: {
-      flex: 1,
-      fontSize: 17,
-      fontWeight: '600',
-    },
-    classEventBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.primaryLight + '30',
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.xs,
-      borderRadius: borderRadius.large,
-      marginLeft: spacing.sm,
-    },
-    classEventText: {
-      color: theme.primaryDark,
-      fontSize: 11,
-      marginLeft: spacing.xs,
-      fontWeight: '600',
-    },
-    eventDescription: {
-      color: theme.text,
-      marginBottom: spacing.md,
-      fontSize: 14,
-      lineHeight: 21,
-    },
-    eventFooter: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: spacing.sm,
-      borderTopWidth: 1,
-      borderTopColor: theme.border,
-      paddingTop: spacing.sm,
-    },
-    eventDate: {
-      color: theme.textLight,
-      fontSize: 13,
-      marginLeft: spacing.sm,
-      fontStyle: 'italic',
-    },
-    emptyState: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: spacing.xl,
-    },
-    emptyListContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: spacing.xl,
-        marginTop: spacing.xxl,
-    },
-    emptyListText: {
-        marginTop: spacing.md,
-        color: theme.textLight,
-        fontSize: 16,
-        textAlign: 'center',
-    }
+  container: {
+    flex: 1,
+    backgroundColor: theme.background,
+    paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0,
+  },
+  listContentContainer: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  sectionHeader: {
+    fontSize: 20, // Augmentation de la taille
+    fontWeight: '700', // Plus gras
+    color: theme.primaryDark, // Couleur plus foncée
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.xs,
+    borderBottomWidth: 2,
+    borderBottomColor: theme.primaryLight,
+    paddingBottom: spacing.sm,
+  },
+  eventCard: {
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    borderLeftWidth: 6, // Bordure plus épaisse
+    backgroundColor: theme.card,
+    ...shadows.small,
+    borderRadius: borderRadius.medium,
+  },
+  doneEventCard: {
+    backgroundColor: theme.gray200,
+    opacity: 0.75,
+  },
+  doneEventTextDecoration: {
+    textDecorationLine: 'line-through',
+  },
+  doneOverlayTextContainer: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    backgroundColor: theme.gray500,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.small,
+  },
+  doneOverlayText: {
+    color: theme.background,
+    fontWeight: 'bold',
+    fontSize: 10,
+    textTransform: 'uppercase',
+  },
+  eventHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  priorityIcon: {
+    marginRight: spacing.sm,
+  },
+  eventTitle: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  classEventBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.primaryLight + '30',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.large,
+    marginLeft: spacing.sm,
+  },
+  classEventText: {
+    color: theme.primaryDark,
+    fontSize: 11,
+    marginLeft: spacing.xs,
+    fontWeight: '600',
+  },
+  eventDescription: {
+    color: theme.text,
+    marginBottom: spacing.md,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  eventFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.border,
+    paddingTop: spacing.sm,
+  },
+  eventDate: {
+    color: theme.textLight,
+    fontSize: 13,
+    marginLeft: spacing.sm,
+    fontStyle: 'italic',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+    marginTop: spacing.xxl,
+  },
+  emptyListText: {
+    marginTop: spacing.md,
+    color: theme.textLight,
+    fontSize: 16,
+    textAlign: 'center',
+  }
 });
 
 export default EventScreen;

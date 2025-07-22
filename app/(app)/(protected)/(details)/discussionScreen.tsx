@@ -16,6 +16,7 @@ import { formatDate } from "@/utils";
 import { useAppSelector } from "@/store";
 import { supabase } from "@/lib/supabase";
 import { ITheme, shadows, spacing } from "@/styles";
+import { Header } from "@/components/Header";
 
 const DiscussionScreen: React.FC = () => {
   const user = useAppSelector((s) => s?.AppReducer?.user);
@@ -52,7 +53,7 @@ const DiscussionScreen: React.FC = () => {
         setTimeout(() => {
           refetchData();
         }
-        , 700);
+          , 700);
       })
       .subscribe();
 
@@ -93,41 +94,6 @@ const DiscussionScreen: React.FC = () => {
     router.push(`/(app)/(protected)/(details)/${chatId}`);
   }
 
-  // Render Methods
-  const renderHeader = () => (
-    <View style={themedStyles.header}>
-      <CsText style={themedStyles.headerTitle}>Discussions</CsText>
-      <View style={themedStyles.filterContainer}>
-        {["all", "unread", "teacher", "admin"].map((filter) => (
-          <TouchableOpacity
-            key={filter}
-            style={[
-              themedStyles.filterButton,
-              selectedFilter === filter && themedStyles.selectedFilterButton,
-            ]}
-            onPress={() => setSelectedFilter(filter)}
-          >
-            <CsText
-              style={StyleSheet.flatten([
-                themedStyles.filterButtonText,
-                selectedFilter === filter &&
-                  themedStyles.selectedFilterButtonText,
-              ])}
-            >
-              {filter === "all"
-                ? "Tous"
-                : filter === "unread"
-                ? "Non lus"
-                : filter === "teacher"
-                ? "Professeurs"
-                : "Administration"}
-            </CsText>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
   const handleNewConversation = () => {
     router.push(`/(app)/(protected)/(details)/newConversationModal`)
   };
@@ -138,7 +104,38 @@ const DiscussionScreen: React.FC = () => {
 
   return (
     <View style={themedStyles.container}>
-      {renderHeader()}
+      <Header
+        title="Discussions"
+      >
+        <View style={themedStyles.filterContainer}>
+          {["all", "unread", "teacher", "admin"].map((filter) => (
+            <TouchableOpacity
+              key={filter}
+              style={[
+                themedStyles.filterButton,
+                selectedFilter === filter && themedStyles.selectedFilterButton,
+              ]}
+              onPress={() => setSelectedFilter(filter)}
+            >
+              <CsText
+                style={StyleSheet.flatten([
+                  themedStyles.filterButtonText,
+                  selectedFilter === filter &&
+                  themedStyles.selectedFilterButtonText,
+                ])}
+              >
+                {filter === "all"
+                  ? "Tous"
+                  : filter === "unread"
+                    ? "Non lus"
+                    : filter === "teacher"
+                      ? "Professeurs"
+                      : "Administration"}
+              </CsText>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Header>
       <FlatList
         style={themedStyles.conversationList}
         data={conversations}

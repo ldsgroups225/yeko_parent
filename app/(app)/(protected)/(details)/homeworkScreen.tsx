@@ -27,6 +27,7 @@ import { INoteDTO } from "@/types/INoteDTO";
 import { ISemester } from "@/types/ISchoolYearDTO";
 import { FlatList } from "react-native";
 import { Pressable } from "react-native";
+import { Header } from "@/components/Header";
 
 const HomeworkScreen: React.FC = () => {
   // Hooks and Redux
@@ -132,14 +133,9 @@ const HomeworkScreen: React.FC = () => {
 
   return (
     <View style={themedStyles.container}>
-      <TitleAndMonths
-        title="Devoirs"
-        selectedMonth={selectedMonth}
-        onMonthChange={handleMonthChange}
-      />
-
-      <View>
-        <Text style={{ fontSize: 14, paddingHorizontal: 20 }}>Filter par trimestre</Text>
+      <Header
+        title="Exercice de maison"
+      >
         <FlatList
           data={semesters}
           horizontal
@@ -161,7 +157,7 @@ const HomeworkScreen: React.FC = () => {
                 style={StyleSheet.flatten([
                   themedStyles.semesterButtonText,
                   selectedSemester?.id === item.id &&
-                    themedStyles.selectedSemesterButtonText,
+                  themedStyles.selectedSemesterButtonText,
                 ])}
               >
                 {item.name}
@@ -169,7 +165,14 @@ const HomeworkScreen: React.FC = () => {
             </Pressable>
           )}
         />
-      </View>
+      </Header>
+      {/* <TitleAndMonths
+        title="Devoirs"
+        selectedMonth={selectedMonth}
+        onMonthChange={handleMonthChange}
+      /> */}
+
+
 
       <AnimatedFlatList
         style={themedStyles.homeworkList}
@@ -360,14 +363,17 @@ const styles = (theme: ITheme) =>
       paddingVertical: spacing.xs,
       borderWidth: 1,
       borderColor: theme.border,
+      backgroundColor: theme.gray200 + '33',
+      opacity: 0.7,
     },
     semesterButtonText: {
       color: theme.text,
     },
     selectedSemesterButton: {
       backgroundColor: theme.primary,
-      borderColor: theme.primary,
+      borderColor: theme.border,
       borderRadius: 8,
+      opacity: 1,
     },
     selectedSemesterButtonText: {
       color: theme.background,

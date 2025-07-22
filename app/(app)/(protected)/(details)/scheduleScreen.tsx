@@ -21,6 +21,7 @@ import { IScheduleDTO } from "@/types/IScheduleDTO";
 import { type ITheme, spacing } from "@/styles";
 import { useSchedule } from "@/hooks";
 import { useAppSelector } from "@/store";
+import { Header } from "@/components/Header";
 
 // Constants
 const daysOfWeek = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
@@ -90,7 +91,6 @@ const ScheduleScreen: React.FC = () => {
 
     return (
       <View style={themedStyles.datePickerContainer}>
-        <CsText style={themedStyles.datePickerTitle}>Emploi du temps</CsText>
         <View style={themedStyles.daysContainer}>
           {daysOfWeek.map((day, index) => {
             const date = new Date(mondayDate);
@@ -166,7 +166,11 @@ const ScheduleScreen: React.FC = () => {
 
   return (
     <View style={themedStyles.container}>
-      {renderDatePicker()}
+      <Header
+        title="Emploi du temps"
+      >
+        {renderDatePicker()}
+      </Header>
       <CsText style={themedStyles.dayTitle}>
         {fullDaysOfWeek[selectedDay - 1]}
       </CsText>
@@ -233,16 +237,7 @@ const styles = (theme: ITheme) =>
       backgroundColor: theme.background,
     },
     datePickerContainer: {
-      paddingTop: spacing.xl,
-      paddingBottom: spacing.md,
-      paddingHorizontal: spacing.md,
       backgroundColor: theme.primary,
-    },
-    datePickerTitle: {
-      color: theme.background,
-      fontSize: 20,
-      fontWeight: "bold",
-      marginBottom: spacing.sm,
     },
     daysContainer: {
       flexDirection: "row",

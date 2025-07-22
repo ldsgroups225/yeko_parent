@@ -20,12 +20,13 @@ import { type ITheme, shadows, spacing } from "@/styles";
 import borderRadius from "@/styles/borderRadius";
 import { progression } from "@/services/progressionService";
 import { GroupedProgressionData, SubjectWithProgression } from "@/types/IProgressionDTO";
+import { Header } from "@/components/Header";
 
 const ProgressionScreen: React.FC = () => {
   const selectedStudent = useSelector((state: RootState) => state.AppReducer.selectedStudent);
   const theme = useTheme();
   const themedStyles = useThemedStyles(styles);
-  
+
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [subjectsWithProgress, setSubjectsWithProgress] = useState<SubjectWithProgression[]>([]);
   const [groupedData, setGroupedData] = useState<GroupedProgressionData>({});
@@ -33,9 +34,9 @@ const ProgressionScreen: React.FC = () => {
   const fetchProgressionData = useCallback(async () => {
     if (!selectedStudent) return {};
     const classId = selectedStudent.class.id;
-    
+
     try {
-      const {groupedData, subjectsWithProgress, subjectSummary} = await progression.getProgressionConfig(classId);
+      const { groupedData, subjectsWithProgress, subjectSummary } = await progression.getProgressionConfig(classId);
 
       if (!selectedSubject && subjectSummary) {
         setSelectedSubject(subjectSummary);
@@ -59,7 +60,7 @@ const ProgressionScreen: React.FC = () => {
     refreshing,
     fetchData: refetchData,
   } = useDataFetching<GroupedProgressionData>(fetchProgressionData, [selectedStudent]);
-  
+
   useEffect(() => {
     if (data && Object.keys(data).length > 0 && !selectedSubject) {
       setSelectedSubject(Object.keys(data)[0]);
@@ -75,7 +76,7 @@ const ProgressionScreen: React.FC = () => {
       year: 'numeric'
     });
   };
-  
+
   if (loading && Object.keys(groupedData).length === 0) return <LoadingScreen />;
 
   if (!loading && Object.keys(groupedData).length === 0 && subjectsWithProgress.length === 0) {
@@ -83,7 +84,7 @@ const ProgressionScreen: React.FC = () => {
       <View style={themedStyles.emptyState}>
         <Ionicons name="cloud-offline-outline" size={48} color={theme.textLight} />
         <CsText style={{ marginTop: spacing.md, color: theme.textLight, textAlign: 'center' }}>
-          Impossible de charger la progression des cours. Vérifiez votre connexion et réessayez.
+          Pas de progression des cours. Vérifiez votre connexion et réessayez.
         </CsText>
         <CsButton title="Réessayer" onPress={refetchData} style={{ marginTop: spacing.lg }} />
       </View>
@@ -94,10 +95,10 @@ const ProgressionScreen: React.FC = () => {
     return (
       <ScreenWrapper>
         <View style={themedStyles.header}>
-            <CsText variant="h2" style={themedStyles.title}>Progression des cours</CsText>
-            <CsText variant="body" style={themedStyles.studentInfo}>
-                Classe: {selectedStudent?.class?.name || 'N/A'}
-            </CsText>
+          <CsText variant="h2" style={themedStyles.title}>Progression des cours</CsText>
+          <CsText variant="body" style={themedStyles.studentInfo}>
+            Classe: {selectedStudent?.class?.name || 'N/A'}
+          </CsText>
         </View>
         <View style={themedStyles.emptyState}>
           <Ionicons name="book-outline" size={48} color={theme.textLight} />
@@ -112,17 +113,12 @@ const ProgressionScreen: React.FC = () => {
 
   return (
     <ScreenWrapper>
-      <View style={themedStyles.container}>
-        <View style={themedStyles.header}>
-          <CsText variant="h2" style={themedStyles.title}>Progression des cours</CsText>
-          <CsText variant="body" style={themedStyles.studentInfo}>
-            Classe: {selectedStudent?.class?.name || 'N/A'}
-          </CsText>
-        </View>
-        
+      <Header
+        title="Progression des cours"
+      >
         <View style={themedStyles.subjectTabsContainer}>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={themedStyles.subjectTabs}
           >
@@ -132,12 +128,12 @@ const ProgressionScreen: React.FC = () => {
                 <TouchableOpacity
                   key={subject.id}
                   style={[
-                    themedStyles.subjectTab, 
+                    themedStyles.subjectTab,
                     isSelected && themedStyles.selectedSubjectTab
                   ]}
                   onPress={() => setSelectedSubject(subject.id)}
                 >
-                  <CsText 
+                  <CsText
                     style={StyleSheet.flatten([
                       themedStyles.subjectTabText,
                       isSelected && themedStyles.selectedSubjectTabText
@@ -161,11 +157,21 @@ const ProgressionScreen: React.FC = () => {
             })}
           </ScrollView>
         </View>
-        
+      </Header>
+      <View style={themedStyles.container}>
+        <View style={themedStyles.header}>
+          <CsText variant="h2" style={themedStyles.title}>Progression des cours</CsText>
+          <CsText variant="body" style={themedStyles.studentInfo}>
+            Classe: {selectedStudent?.class?.name || 'N/A'}
+          </CsText>
+        </View>
+
+
+
         {loading && !groupedData[selectedSubject!] && (
-            <View style={themedStyles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.primary} />
-            </View>
+          <View style={themedStyles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
         )}
         {selectedSubject && groupedData[selectedSubject] ? (
           <FlatList
@@ -176,37 +182,37 @@ const ProgressionScreen: React.FC = () => {
               <RefreshControl refreshing={refreshing} onRefresh={refetchData} />
             }
             ListEmptyComponent={
-                <View style={themedStyles.emptyStateSmall}>
-                    <Ionicons name="information-circle-outline" size={32} color={theme.textLight} />
-                    <CsText style={{color: theme.textLight, textAlign: 'center'}}>
-                        Aucune leçon trouvée pour cette matière.
-                    </CsText>
-                </View>
+              <View style={themedStyles.emptyStateSmall}>
+                <Ionicons name="information-circle-outline" size={32} color={theme.textLight} />
+                <CsText style={{ color: theme.textLight, textAlign: 'center' }}>
+                  Aucune leçon trouvée pour cette matière.
+                </CsText>
+              </View>
             }
             renderItem={({ item, index }) => {
               const isCompleted = item.report?.is_completed || false;
               const lessonsForSubject = groupedData[selectedSubject]?.lessons || [];
               const firstUpcomingIndex = lessonsForSubject.findIndex(l => !l.report?.is_completed);
-              const isCurrent = !isCompleted && index === (firstUpcomingIndex === -1 ? lessonsForSubject.length : firstUpcomingIndex) ;
+              const isCurrent = !isCompleted && index === (firstUpcomingIndex === -1 ? lessonsForSubject.length : firstUpcomingIndex);
               const isUpcoming = !isCompleted && !isCurrent;
-              
+
               return (
                 <View style={themedStyles.progressionItem}>
                   {index > 0 && (
                     <View style={[
-                        themedStyles.connectorLine,
-                        item.report?.is_completed ? themedStyles.completedConnector :
-                        (lessonsForSubject[index-1]?.report?.is_completed && isCurrent) ? themedStyles.currentConnectorLeadingFromCompleted :
-                        isCurrent ? themedStyles.currentConnector :
-                        themedStyles.upcomingConnector
-                    ]}/>
+                      themedStyles.connectorLine,
+                      item.report?.is_completed ? themedStyles.completedConnector :
+                        (lessonsForSubject[index - 1]?.report?.is_completed && isCurrent) ? themedStyles.currentConnectorLeadingFromCompleted :
+                          isCurrent ? themedStyles.currentConnector :
+                            themedStyles.upcomingConnector
+                    ]} />
                   )}
-                  
-                  <View 
-                    style={[themedStyles.stepCircle, 
-                      isCompleted ? themedStyles.completedStep : 
-                      isCurrent ? themedStyles.currentStep : 
-                      themedStyles.upcomingStep
+
+                  <View
+                    style={[themedStyles.stepCircle,
+                    isCompleted ? themedStyles.completedStep :
+                      isCurrent ? themedStyles.currentStep :
+                        themedStyles.upcomingStep
                     ]}
                   >
                     {isCompleted ? (
@@ -217,66 +223,66 @@ const ProgressionScreen: React.FC = () => {
                       <CsText style={themedStyles.stepNumber}>{index + 1}</CsText>
                     )}
                   </View>
-                  
+
                   <View style={themedStyles.stepContent}>
                     <View style={themedStyles.stepHeader}>
-                      <CsText 
-                        variant="h3" 
+                      <CsText
+                        variant="h3"
                         style={{
-                          ...themedStyles.stepTitle, 
-                          ...(isCompleted ? themedStyles.completedText : 
-                             isCurrent ? themedStyles.currentText : 
-                             themedStyles.upcomingText)
+                          ...themedStyles.stepTitle,
+                          ...(isCompleted ? themedStyles.completedText :
+                            isCurrent ? themedStyles.currentText :
+                              themedStyles.upcomingText)
                         }}
                       >
-                        {`${item.lesson}`} 
+                        {`${item.lesson}`}
                       </CsText>
-                      
+
                       {isCompleted && (
                         <View style={[themedStyles.statusBadge, themedStyles.completedBadge]}>
-                          <Ionicons name="checkmark-done-outline" size={16} color={theme.success} style={{marginRight: spacing.xs}}/>
+                          <Ionicons name="checkmark-done-outline" size={16} color={theme.success} style={{ marginRight: spacing.xs }} />
                           <CsText style={themedStyles.completedBadgeText}>Terminé</CsText>
                         </View>
                       )}
-                      
+
                       {isCurrent && (
                         <View style={[themedStyles.statusBadge, themedStyles.currentBadge]}>
-                           <Ionicons name="play-forward-outline" size={16} color={theme.primary} style={{marginRight: spacing.xs}}/>
+                          <Ionicons name="play-forward-outline" size={16} color={theme.primary} style={{ marginRight: spacing.xs }} />
                           <CsText style={themedStyles.currentBadgeText}>En cours</CsText>
                         </View>
                       )}
-                       {isUpcoming && (
+                      {isUpcoming && (
                         <View style={[themedStyles.statusBadge, themedStyles.upcomingBadge]}>
-                          <Ionicons name="time-outline" size={16} color={theme.textLight} style={{marginRight: spacing.xs}}/>
+                          <Ionicons name="time-outline" size={16} color={theme.textLight} style={{ marginRight: spacing.xs }} />
                           <CsText style={themedStyles.upcomingBadgeText}>À venir</CsText>
                         </View>
                       )}
                     </View>
-                    
+
                     <View style={themedStyles.stepDetails}>
                       {(isCompleted || isCurrent) && item.sessions_count > 0 && (
                         <>
                           <View style={themedStyles.progressBar}>
-                            <View 
+                            <View
                               style={[
-                                themedStyles.progressFill, 
+                                themedStyles.progressFill,
                                 { width: `${item.progress}%` },
-                                isCompleted && { backgroundColor: theme.success } 
-                              ]} 
+                                isCompleted && { backgroundColor: theme.success }
+                              ]}
                             />
                           </View>
-                          
+
                           <View style={themedStyles.progressDetails}>
                             <CsText style={themedStyles.progressText}>
                               {item.report?.sessions_completed || 0} / {item.sessions_count} séance{item.sessions_count > 1 ? 's' : ''}
                             </CsText>
-                            
+
                             {isCompleted && item.report?.completed_at && (
                               <CsText style={themedStyles.dateText}>
                                 {formatDateDisplay(item.report.completed_at)}
                               </CsText>
                             )}
-                            
+
                             {isCurrent && item.report?.started_at && !item.report?.is_completed && (
                               <CsText style={themedStyles.dateText}>
                                 Début: {formatDateDisplay(item.report.started_at)}
@@ -285,9 +291,9 @@ const ProgressionScreen: React.FC = () => {
                           </View>
                         </>
                       )}
-                      
+
                       {isUpcoming && (
-                        <CsText style={StyleSheet.flatten([themedStyles.upcomingText, {fontSize: 14}])}>
+                        <CsText style={StyleSheet.flatten([themedStyles.upcomingText, { fontSize: 14 }])}>
                           {item.sessions_count} séance{item.sessions_count > 1 ? 's' : ''} prévue{item.sessions_count > 1 ? 's' : ''}
                         </CsText>
                       )}
@@ -352,17 +358,14 @@ const styles = (theme: ITheme) => StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   subjectTabsContainer: {
-    backgroundColor: theme.background,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
+    backgroundColor: theme.background + '10',
   },
   subjectTabs: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.xs,
   },
   subjectTab: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm + 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
     marginRight: spacing.sm,
     borderRadius: borderRadius.large,
     backgroundColor: theme.gray100,
@@ -374,7 +377,7 @@ const styles = (theme: ITheme) => StyleSheet.create({
   },
   selectedSubjectTab: {
     backgroundColor: theme.primary,
-    borderColor: theme.primaryDark,
+    borderColor: theme.background,
     ...shadows.medium,
   },
   subjectTabText: {
@@ -387,40 +390,40 @@ const styles = (theme: ITheme) => StyleSheet.create({
   },
   progressBadge: {
     marginLeft: spacing.sm,
-    paddingHorizontal: spacing.sm, 
-    paddingVertical: spacing.xs + 2, 
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs + 2,
     borderRadius: borderRadius.medium,
-    backgroundColor: theme.gray200, 
+    backgroundColor: theme.gray200,
   },
   progressBadgeText: {
-    fontSize: 13, 
-    color: theme.text, 
-    fontWeight: 'bold', 
+    fontSize: 13,
+    color: theme.text,
+    fontWeight: 'bold',
   },
   selectedTabProgressBadge: {
-    backgroundColor: theme.background, 
+    backgroundColor: theme.background,
   },
   selectedTabProgressBadgeText: {
     color: theme.primary,
   },
   progressionList: {
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg, 
-    paddingBottom: spacing.xxl, 
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl,
   },
   progressionItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start', 
+    alignItems: 'flex-start',
     marginBottom: spacing.xl,
     position: 'relative',
   },
   connectorLine: {
     position: 'absolute',
-    left: 17, 
-    width: 3, 
-    top: 36, 
-    height: '110%', 
-    zIndex: 0, 
+    left: 17,
+    width: 3,
+    top: 36,
+    height: '110%',
+    zIndex: 0,
   },
   completedConnector: { backgroundColor: theme.success },
   currentConnector: { backgroundColor: theme.primary },
@@ -433,7 +436,7 @@ const styles = (theme: ITheme) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.lg,
-    zIndex: 1, 
+    zIndex: 1,
     backgroundColor: theme.card,
     ...shadows.small,
   },
@@ -443,12 +446,12 @@ const styles = (theme: ITheme) => StyleSheet.create({
     borderWidth: 2,
   },
   currentStep: {
-    backgroundColor: theme.background, 
+    backgroundColor: theme.background,
     borderColor: theme.primary,
     borderWidth: 3,
   },
-  currentStepInner: { 
-    width: 14, 
+  currentStepInner: {
+    width: 14,
     height: 14,
     borderRadius: 7,
     backgroundColor: theme.primary,
@@ -465,21 +468,21 @@ const styles = (theme: ITheme) => StyleSheet.create({
   },
   stepContent: {
     flex: 1,
-    backgroundColor: theme.card, 
-    borderRadius: borderRadius.large, 
-    padding: spacing.lg, 
-    borderWidth: 1, 
-    borderColor: theme.border, 
+    backgroundColor: theme.card,
+    borderRadius: borderRadius.large,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   stepHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm, 
+    marginBottom: spacing.sm,
   },
   stepTitle: {
-    fontWeight: 'bold', 
-    flexShrink: 1, 
+    fontWeight: 'bold',
+    flexShrink: 1,
     marginRight: spacing.sm,
     fontSize: 18,
     color: theme.text,
@@ -489,16 +492,16 @@ const styles = (theme: ITheme) => StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.sm + 2,
     paddingVertical: spacing.xs + 2,
-    borderRadius: borderRadius.large, 
+    borderRadius: borderRadius.large,
   },
   completedBadge: { backgroundColor: theme.success + '30' },
   completedBadgeText: { color: theme.success, fontSize: 13, fontWeight: 'bold' },
-  currentBadge: { backgroundColor: theme.primary + '30'},
+  currentBadge: { backgroundColor: theme.primary + '30' },
   currentBadgeText: { color: theme.primary, fontSize: 13, fontWeight: 'bold' },
   upcomingBadge: { backgroundColor: theme.gray200 },
   upcomingBadgeText: { color: theme.textLight, fontSize: 13, fontWeight: 'bold' },
-  
-  completedText: { color: theme.text }, 
+
+  completedText: { color: theme.text },
   currentText: { color: theme.primary },
   upcomingText: { color: theme.textLight },
 
@@ -509,11 +512,11 @@ const styles = (theme: ITheme) => StyleSheet.create({
     height: 10,
     backgroundColor: theme.gray200,
     borderRadius: 5,
-    marginBottom: spacing.sm, 
+    marginBottom: spacing.sm,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: theme.primary, 
+    backgroundColor: theme.primary,
     borderRadius: 5,
   },
   progressDetails: {
@@ -522,7 +525,7 @@ const styles = (theme: ITheme) => StyleSheet.create({
     marginTop: spacing.xs,
   },
   progressText: {
-    fontSize: 14, 
+    fontSize: 14,
     color: theme.textLight,
     marginBottom: spacing.xs,
   },

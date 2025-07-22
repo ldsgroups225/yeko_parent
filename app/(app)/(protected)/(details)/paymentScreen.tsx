@@ -26,6 +26,7 @@ import { useTheme, useThemedStyles } from "@/hooks";
 
 import { type ITheme, shadows, spacing } from "@/styles";
 import borderRadius from "@/styles/borderRadius";
+import { Header } from "@/components/Header";
 
 type TabType = 'installments' | 'history';
 type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue';
@@ -79,9 +80,9 @@ const PaymentScreen: React.FC = () => {
         showToast(result.error || "Échec du paiement", ToastColorEnum.Error);
       }
     } catch (error) {
-        const message = error instanceof Error ? error.message : "Une erreur inconnue est survenue.";
-        setPaymentError(message);
-        showToast(message, ToastColorEnum.Error);
+      const message = error instanceof Error ? error.message : "Une erreur inconnue est survenue.";
+      setPaymentError(message);
+      showToast(message, ToastColorEnum.Error);
     } finally {
       setProcessingPayment(false);
     }
@@ -110,15 +111,15 @@ const PaymentScreen: React.FC = () => {
         <CsCard style={themedStyles.listItemCard}>
           <View style={themedStyles.listItemContent}>
             <View style={themedStyles.listItemTextContainer}>
-                <CsText style={themedStyles.amount}>{formatCurrency(item.amount)}</CsText>
-                <CsText style={themedStyles.date}>Échéance: {formatDate(item.due_date, 'd MMM yyyy')}</CsText>
+              <CsText style={themedStyles.amount}>{formatCurrency(item.amount)}</CsText>
+              <CsText style={themedStyles.date}>Échéance: {formatDate(item.due_date, 'd MMM yyyy')}</CsText>
             </View>
             <View style={[themedStyles.statusContainer]}>
-                 <Ionicons name={statusInfo.icon} size={18} color={statusInfo.color} style={themedStyles.statusIcon} />
-                 <CsText style={StyleSheet.flatten([themedStyles.statusText, { color: statusInfo.color }])}>{statusInfo.text}</CsText>
+              <Ionicons name={statusInfo.icon} size={18} color={statusInfo.color} style={themedStyles.statusIcon} />
+              <CsText style={StyleSheet.flatten([themedStyles.statusText, { color: statusInfo.color }])}>{statusInfo.text}</CsText>
             </View>
           </View>
-           {isPayable && (
+          {isPayable && (
             <CsButton
               size="small"
               style={themedStyles.payButton}
@@ -135,19 +136,19 @@ const PaymentScreen: React.FC = () => {
       );
     } else {
       // Payment item (History)
-       const statusInfo = getStatusInfo('paid');
+      const statusInfo = getStatusInfo('paid');
       return (
         <CsCard style={themedStyles.listItemCard}>
-           <View style={themedStyles.listItemContent}>
-                <View style={themedStyles.listItemTextContainer}>
-                    <CsText style={themedStyles.amount}>{formatCurrency(item.amount)}</CsText>
-                    <CsText style={themedStyles.date}>Payé le: {formatDate(item.paid_at || '', 'd MMM yyyy, HH:mm')}</CsText>
-                 </View>
-                 <View style={[themedStyles.statusContainer]}>
-                     <Ionicons name={statusInfo.icon} size={18} color={statusInfo.color} style={themedStyles.statusIcon} />
-                     <CsText style={StyleSheet.flatten([themedStyles.statusText, { color: statusInfo.color }])}>{statusInfo.text}</CsText>
-                 </View>
-           </View>
+          <View style={themedStyles.listItemContent}>
+            <View style={themedStyles.listItemTextContainer}>
+              <CsText style={themedStyles.amount}>{formatCurrency(item.amount)}</CsText>
+              <CsText style={themedStyles.date}>Payé le: {formatDate(item.paid_at || '', 'd MMM yyyy, HH:mm')}</CsText>
+            </View>
+            <View style={[themedStyles.statusContainer]}>
+              <Ionicons name={statusInfo.icon} size={18} color={statusInfo.color} style={themedStyles.statusIcon} />
+              <CsText style={StyleSheet.flatten([themedStyles.statusText, { color: statusInfo.color }])}>{statusInfo.text}</CsText>
+            </View>
+          </View>
         </CsCard>
       );
     }
@@ -184,12 +185,12 @@ const PaymentScreen: React.FC = () => {
 
     // Sort installments: overdue first, then pending, then paid
     filteredInstallments.sort((a, b) => {
-        const statusOrder = { 'overdue': 1, 'pending': 2, 'paid': 3 };
-        const orderA = statusOrder[a.status as keyof typeof statusOrder] ?? 4;
-        const orderB = statusOrder[b.status as keyof typeof statusOrder] ?? 4;
-        if (orderA !== orderB) return orderA - orderB;
-        // If status is the same, sort by due date (earliest first)
-        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      const statusOrder = { 'overdue': 1, 'pending': 2, 'paid': 3 };
+      const orderA = statusOrder[a.status as keyof typeof statusOrder] ?? 4;
+      const orderB = statusOrder[b.status as keyof typeof statusOrder] ?? 4;
+      if (orderA !== orderB) return orderA - orderB;
+      // If status is the same, sort by due date (earliest first)
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
     });
 
 
@@ -211,7 +212,6 @@ const PaymentScreen: React.FC = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={themedStyles.filterContainer}
       >
         {filters.map(({ label, value }) => {
           const buttonStyle = StyleSheet.flatten([
@@ -252,7 +252,7 @@ const PaymentScreen: React.FC = () => {
       setPaymentError(null);
       setShowPaymentModal(true);
     } else {
-        showToast("Aucune tranche en attente ou en retard à payer.", ToastColorEnum.Info);
+      showToast("Aucune tranche en attente ou en retard à payer.", ToastColorEnum.Info);
     }
   };
 
@@ -274,12 +274,12 @@ const PaymentScreen: React.FC = () => {
           onPress={() => !processingPayment && setShowPaymentModal(false)}
         >
           {/* Prevent closing when clicking inside the card */}
-          <Pressable style={themedStyles.modalCard} onPress={() => {}}>
+          <Pressable style={themedStyles.modalCard} onPress={() => { }}>
             {/* Header */}
             <View style={themedStyles.modalHeader}>
-                <CsText variant="h3" style={themedStyles.modalTitle}>
-                  Payer la tranche
-                </CsText>
+              <CsText variant="h3" style={themedStyles.modalTitle}>
+                Payer la tranche
+              </CsText>
               <Pressable
                 style={themedStyles.closeButton}
                 onPress={() => !processingPayment && setShowPaymentModal(false)}
@@ -317,12 +317,12 @@ const PaymentScreen: React.FC = () => {
 
             <CsDivider />
 
-             {/* Error Message Area */}
+            {/* Error Message Area */}
             {paymentError && (
-                <View style={themedStyles.errorContainer}>
-                    <Ionicons name="alert-circle-outline" size={20} color={theme.error} style={{ marginRight: spacing.sm }}/>
-                    <CsText style={themedStyles.errorText}>{paymentError}</CsText>
-                </View>
+              <View style={themedStyles.errorContainer}>
+                <Ionicons name="alert-circle-outline" size={20} color={theme.error} style={{ marginRight: spacing.sm }} />
+                <CsText style={themedStyles.errorText}>{paymentError}</CsText>
+              </View>
             )}
 
             {/* Payment Methods */}
@@ -356,26 +356,25 @@ const PaymentScreen: React.FC = () => {
   if (loading && !data) return <LoadingScreen />;
 
   if (!data && !loading) return (
-      <View style={themedStyles.emptyState}>
-          <Ionicons name="cloud-offline-outline" size={48} color={theme.textLight} />
-          <CsText style={{ marginTop: spacing.md, color: theme.textLight, textAlign: 'center' }}>
-              Impossible de charger les données de paiement. Vérifiez votre connexion et réessayez.
-          </CsText>
-          <CsButton title="Réessayer" onPress={refetchData} style={{ marginTop: spacing.lg }} />
-      </View>
+    <View style={themedStyles.emptyState}>
+      <Ionicons name="cloud-offline-outline" size={48} color={theme.textLight} />
+      <CsText style={{ marginTop: spacing.md, color: theme.textLight, textAlign: 'center' }}>
+        Impossible de charger les données de paiement. Vérifiez votre connexion et réessayez.
+      </CsText>
+      <CsButton title="Réessayer" onPress={refetchData} style={{ marginTop: spacing.lg }} />
+    </View>
   );
 
   const hasPendingInstallments = data?.installments.some(i => i.status === 'pending' || i.status === 'overdue');
 
   return (
     <View style={themedStyles.container}>
-      {/* Header - Kept outside the list */}
-      <View style={themedStyles.header}>
-        <CsText variant="h2" style={themedStyles.title}>Détails de Paiement</CsText>
-        <CsText variant="body" style={themedStyles.studentInfo}>
-          {selectedStudent?.firstName} {selectedStudent?.lastName}
-        </CsText>
-      </View>
+      <Header
+        title="Scolarité"
+      >
+        {/* Filters - Render only when needed */}
+        {activeTab === 'installments' && renderFilters()}
+      </Header>
 
       {/* List */}
       <AnimatedFlatList<ListItem>
@@ -393,8 +392,6 @@ const PaymentScreen: React.FC = () => {
               warningColor={theme.warning}
             />
 
-            {/* Filters - Render only when needed */}
-            {activeTab === 'installments' && renderFilters()}
 
             {/* Tabs */}
             <View style={themedStyles.tabContainer}>
@@ -409,8 +406,8 @@ const PaymentScreen: React.FC = () => {
                 <CsText
                   variant="body"
                   style={StyleSheet.flatten([
-                      themedStyles.tabText,
-                      activeTab === 'installments' && themedStyles.activeTabText
+                    themedStyles.tabText,
+                    activeTab === 'installments' && themedStyles.activeTabText
                   ])}
                 >
                   Tranches
@@ -427,8 +424,8 @@ const PaymentScreen: React.FC = () => {
                 <CsText
                   variant="body"
                   style={StyleSheet.flatten([
-                      themedStyles.tabText,
-                      activeTab === 'history' && themedStyles.activeTabText
+                    themedStyles.tabText,
+                    activeTab === 'history' && themedStyles.activeTabText
                   ])}
                 >
                   Historique
@@ -455,11 +452,11 @@ const PaymentScreen: React.FC = () => {
       {activeTab === 'installments' && hasPendingInstallments && (
         <View style={themedStyles.fab}>
           <Pressable
-          onPress={handleNewPayment}
-          android_ripple={{ color: theme.rippleColor, borderless: true }}
-        >
-          <Ionicons name="add" size={28} color={theme.background} />
-        </Pressable>
+            onPress={handleNewPayment}
+            android_ripple={{ color: theme.rippleColor, borderless: true }}
+          >
+            <Ionicons name="add" size={28} color={theme.background} />
+          </Pressable>
         </View>
       )}
 
@@ -471,223 +468,218 @@ const PaymentScreen: React.FC = () => {
 
 
 const styles = (theme: ITheme) => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.background,
-      // Add padding top for status bar, especially needed on Android
-      paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0,
-    },
-    header: {
-      paddingHorizontal: spacing.md,
-      // Removed paddingTop here, handled by container now
-      paddingBottom: spacing.sm,
-      backgroundColor: theme.background,
-    },
-    title: {
-      marginBottom: spacing.xs,
-      color: theme.text,
-    },
-    studentInfo: {
-      color: theme.textLight,
-    },
-    tabContainer: {
-      flexDirection: 'row',
-      marginTop: spacing.md,
-      marginBottom: spacing.md,
-      marginHorizontal: spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
-    },
-    tab: {
-      flex: 1,
-      paddingVertical: spacing.md,
-      alignItems: 'center',
-      borderBottomWidth: 3,
-      borderBottomColor: 'transparent',
-    },
-    activeTab: {
-      borderBottomColor: theme.primary,
-    },
-    tabText: {
-      color: theme.textLight,
-      fontWeight: '500',
-    },
-    activeTabText: {
-      color: theme.primary,
-      fontWeight: '700',
-    },
-    listItemCard: {
-        marginBottom: spacing.sm,
-        padding: spacing.md,
-        marginHorizontal: spacing.md,
-    },
-    listItemContent: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    listItemTextContainer: {
-        flex: 1,
-        marginRight: spacing.sm,
-    },
-    amount: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: theme.text,
-      marginBottom: spacing.xs,
-    },
-    date: {
-      fontSize: 13,
-      color: theme.textLight,
-    },
-    statusContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: spacing.sm,
-        paddingVertical: spacing.xs,
-        borderRadius: borderRadius.medium,
-        minWidth: 100,
-        justifyContent: 'flex-end',
-    },
-    statusIcon: {
-        marginRight: spacing.xs,
-    },
-    statusText: {
-      fontSize: 12,
-      fontWeight: '700',
-      textTransform: 'capitalize',
-    },
-    payButton: {
-        marginTop: spacing.md,
-        alignSelf: 'flex-end',
-    },
-    emptyState: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: spacing.xl,
-      // Add status bar height padding here too if container padding isn't enough
-      paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0,
-    },
-    emptyListContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: spacing.xl,
-        marginTop: spacing.xxl,
-    },
-    filterContainer: {
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.md,
-      marginTop: spacing.xs,
-    },
-    filterButton: {
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.xs,
-      borderRadius: borderRadius.large,
-      marginRight: spacing.sm, // Slightly increased margin
-      backgroundColor: theme.card,
-      borderWidth: 1,
-      borderColor: theme.border,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    activeFilter: {
-      backgroundColor: theme.primary,
-      borderColor: theme.primary,
-    },
-    filterText: {
-      color: theme.text,
-      fontSize: 14,
-    },
-    activeFilterText: {
-      color: theme.background,
-      fontWeight: '600',
-    },
-    fab: {
-      position: 'absolute',
-      bottom: spacing.lg + (Platform.OS === 'android' ? 10 : 0), // Add a bit more space on Android
-      right: spacing.lg,
-      width: 48,
-      height: 48,
-      borderRadius: borderRadius.medium,
-      backgroundColor: theme.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      ...shadows.small,
-      zIndex: 1,
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: spacing.md,
-    },
-    modalCard: {
-      backgroundColor: theme.card,
-      borderRadius: borderRadius.large,
-      width: '100%',
-      maxWidth: 400,
-      padding: spacing.lg,
-      ...shadows.medium,
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: spacing.lg,
-    },
-    modalTitle: {
-      color: theme.text,
-      flex: 1,
-      marginRight: spacing.sm,
-    },
-    modalSubtitle: {
-      fontSize: 14,
-      color: theme.textLight,
-      marginBottom: spacing.md,
-      marginTop: spacing.md,
-    },
-    paymentDetails: {
-      marginVertical: spacing.md,
-    },
-    paymentRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: spacing.sm,
-    },
-    paymentLabel: {
-      fontSize: 14,
-      color: theme.textLight,
-    },
-    paymentValue: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.text,
-    },
-    paymentMethodButton: {
-      marginTop: spacing.md,
-    },
-    closeButton: {
-      padding: spacing.xs,
-    },
-    closeIcon: {
-      color: theme.textLight,
-    },
-    errorContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: theme.error + '20',
-        padding: spacing.sm,
-        borderRadius: borderRadius.medium,
-        marginBottom: spacing.md,
-    },
-    errorText: {
-        color: theme.error,
-        fontSize: 13,
-        flex: 1,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: theme.background,
+    // Add padding top for status bar, especially needed on Android
+    paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0,
+  },
+  header: {
+    paddingHorizontal: spacing.md,
+    // Removed paddingTop here, handled by container now
+    paddingBottom: spacing.sm,
+    backgroundColor: theme.background,
+  },
+  title: {
+    marginBottom: spacing.xs,
+    color: theme.text,
+  },
+  studentInfo: {
+    color: theme.textLight,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+    marginHorizontal: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  activeTab: {
+    borderBottomColor: theme.primary,
+  },
+  tabText: {
+    color: theme.textLight,
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: theme.primary,
+    fontWeight: '700',
+  },
+  listItemCard: {
+    marginBottom: spacing.sm,
+    padding: spacing.md,
+    marginHorizontal: spacing.md,
+  },
+  listItemContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  listItemTextContainer: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  amount: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.text,
+    marginBottom: spacing.xs,
+  },
+  date: {
+    fontSize: 13,
+    color: theme.textLight,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.medium,
+    minWidth: 100,
+    justifyContent: 'flex-end',
+  },
+  statusIcon: {
+    marginRight: spacing.xs,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  payButton: {
+    marginTop: spacing.md,
+    alignSelf: 'flex-end',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+    // Add status bar height padding here too if container padding isn't enough
+    paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0,
+  },
+  emptyListContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+    marginTop: spacing.xxl,
+  },
+  filterButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.large,
+    marginRight: spacing.sm, // Slightly increased margin
+    backgroundColor: theme.card,
+    borderWidth: 1,
+    borderColor: theme.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeFilter: {
+    backgroundColor: theme.primary,
+    borderColor: theme.background,
+  },
+  filterText: {
+    color: theme.text,
+    fontSize: 14,
+  },
+  activeFilterText: {
+    color: theme.background,
+    fontWeight: '600',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: spacing.lg + (Platform.OS === 'android' ? 10 : 0), // Add a bit more space on Android
+    right: spacing.lg,
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.medium,
+    backgroundColor: theme.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.small,
+    zIndex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.md,
+  },
+  modalCard: {
+    backgroundColor: theme.card,
+    borderRadius: borderRadius.large,
+    width: '100%',
+    maxWidth: 400,
+    padding: spacing.lg,
+    ...shadows.medium,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  modalTitle: {
+    color: theme.text,
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: theme.textLight,
+    marginBottom: spacing.md,
+    marginTop: spacing.md,
+  },
+  paymentDetails: {
+    marginVertical: spacing.md,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  paymentLabel: {
+    fontSize: 14,
+    color: theme.textLight,
+  },
+  paymentValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.text,
+  },
+  paymentMethodButton: {
+    marginTop: spacing.md,
+  },
+  closeButton: {
+    padding: spacing.xs,
+  },
+  closeIcon: {
+    color: theme.textLight,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.error + '20',
+    padding: spacing.sm,
+    borderRadius: borderRadius.medium,
+    marginBottom: spacing.md,
+  },
+  errorText: {
+    color: theme.error,
+    fontSize: 13,
+    flex: 1,
+  },
 });
 
 export default PaymentScreen;
