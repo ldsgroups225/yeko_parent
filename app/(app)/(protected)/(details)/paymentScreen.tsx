@@ -1,6 +1,6 @@
 // app/(app)/(protected)/(details)/paymentScreen.tsx
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { StyleSheet, View, Pressable, Modal, ScrollView, Platform } from "react-native"; // Added Platform
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
@@ -46,10 +46,10 @@ const PaymentScreen: React.FC = () => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<FilterStatus>('all');
 
-  const fetchPaymentData = useCallback(async () => {
+  const fetchPaymentData = async () => {
     if (!selectedStudent) return null;
     return await paymentService.fetchPaymentData(selectedStudent.id);
-  }, [selectedStudent]);
+  };
 
   const {
     data,
@@ -154,29 +154,26 @@ const PaymentScreen: React.FC = () => {
     }
   }, [themedStyles, theme]);
 
-  const summaryItems = useMemo(() => {
-    if (!data?.paymentPlan) return [];
-
-    const { total_amount = 0, amount_paid = 0 } = data.paymentPlan;
-    const remaining = total_amount - amount_paid;
+  const summaryItems = () => {
+    const { totalAmount, remainingAmount } = data?.stats ?? { totalAmount: 0, remainingAmount: 0 };
 
     return [
       {
-        label: "Montant Payé",
-        value: formatCurrency(amount_paid),
+        label: "Total",
+        value: formatCurrency(totalAmount),
         icon: "checkmark-done-circle-outline" as const,
         color: theme.success,
       },
       {
         label: "Reste à Payer",
-        value: formatCurrency(remaining),
+        value: formatCurrency(remainingAmount),
         icon: "alert-circle-outline" as const,
-        color: remaining > 0 ? theme.warning : theme.success,
+        color: remainingAmount > 0 ? theme.warning : theme.success,
       },
     ];
-  }, [data, theme]);
+  };
 
-  const filteredData = useMemo(() => {
+  const filteredData = () => {
     if (!data) return { installments: [], payments: [] };
 
     const filteredInstallments = selectedStatus === 'all'
@@ -198,7 +195,7 @@ const PaymentScreen: React.FC = () => {
       installments: filteredInstallments,
       payments: data.payments
     };
-  }, [data, selectedStatus]);
+  };
 
   const renderFilters = () => {
     const filters: { label: string; value: FilterStatus }[] = [
@@ -378,7 +375,7 @@ const PaymentScreen: React.FC = () => {
 
       {/* List */}
       <AnimatedFlatList<ListItem>
-        data={activeTab === 'installments' ? filteredData.installments : filteredData.payments}
+        data={activeTab === 'installments' ? filteredData().installments : filteredData().payments}
         renderItem={renderListItem}
         keyExtractor={(item) => item.id.toString()}
         onRefresh={refetchData}
@@ -386,7 +383,7 @@ const PaymentScreen: React.FC = () => {
         ListHeaderComponent={
           <>
             <SummaryCard
-              items={summaryItems}
+              items={summaryItems()}
               primaryColor={theme.primary}
               successColor={theme.success}
               warningColor={theme.warning}

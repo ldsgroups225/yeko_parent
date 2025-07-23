@@ -6,7 +6,10 @@ type PaymentInstallment = Database["public"]["Tables"]["payment_installments"]["
 type Payment = Database["public"]["Tables"]["payments"]["Row"];
 
 export interface PaymentData {
-  paymentPlan: PaymentPlan;
+  stats: {
+    totalAmount: number;
+    remainingAmount: number;
+  };
   installments: PaymentInstallment[];
   payments: Payment[];
 }
@@ -14,34 +17,24 @@ export interface PaymentData {
 export const paymentService = {
   async fetchPaymentData(studentId: string): Promise<PaymentData | null> {
     try {
-      // Get current enrollment for the student
-      const { data: enrollment } = await supabase
-        .from('student_school_class')
-        .select('id')
+      // 1. Query payment_details_view
+      const { data: paymentDetails } = await supabase
+        .from('payment_details_view')
+        .select('enrollment_id, total_amount, remaining_amount, payment_plan_id')
         .eq('student_id', studentId)
-        .eq('is_active', true)
-        .single();
+        .order('payment_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (!enrollment) {
-        throw new Error('No active enrollment found');
-      }
-
-      // Get payment plan
-      const { data: paymentPlan } = await supabase
-        .from('payment_plans')
-        .select('*')
-        .eq('enrollment_id', enrollment.id)
-        .single();
-
-      if (!paymentPlan) {
-        throw new Error('No payment plan found');
+      if (!paymentDetails) {
+        return null;
       }
 
       // Get installments
       const { data: installments } = await supabase
         .from('payment_installments')
         .select('*')
-        .eq('payment_plan_id', paymentPlan.id)
+        .eq('payment_plan_id', paymentDetails.payment_plan_id!)
         .order('due_date', { ascending: true });
 
       // Get payment history
@@ -52,7 +45,10 @@ export const paymentService = {
         .order('paid_at', { ascending: false });
 
       return {
-        paymentPlan,
+        stats: {
+          totalAmount: paymentDetails.total_amount ?? 0,
+          remainingAmount: paymentDetails.remaining_amount ?? 0,
+        },
         installments: installments || [],
         payments: payments || []
       };
