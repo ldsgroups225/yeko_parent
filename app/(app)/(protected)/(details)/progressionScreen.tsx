@@ -1,7 +1,7 @@
 // app/(app)/(protected)/(details)/progressionScreen.tsx
 
 import React, { useCallback, useState, useEffect } from "react";
-import { StyleSheet, View, Platform, ScrollView, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from "react-native";
+import { StyleSheet, View, ScrollView, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
 import useDataFetching from '@/hooks/useDataFetching';
@@ -93,13 +93,7 @@ const ProgressionScreen: React.FC = () => {
 
   if (subjectsWithProgress.length === 0 && !loading) {
     return (
-      <ScreenWrapper>
-        <View style={themedStyles.header}>
-          <CsText variant="h2" style={themedStyles.title}>Progression des cours</CsText>
-          <CsText variant="body" style={themedStyles.studentInfo}>
-            Classe: {selectedStudent?.class?.name || 'N/A'}
-          </CsText>
-        </View>
+      <View style={themedStyles.container}>
         <View style={themedStyles.emptyState}>
           <Ionicons name="book-outline" size={48} color={theme.textLight} />
           <CsText style={{ marginTop: spacing.md, color: theme.textLight, textAlign: 'center' }}>
@@ -107,12 +101,12 @@ const ProgressionScreen: React.FC = () => {
           </CsText>
           <CsButton title="Actualiser" onPress={refetchData} style={{ marginTop: spacing.lg }} />
         </View>
-      </ScreenWrapper>
+      </View>
     );
   }
 
   return (
-    <ScreenWrapper>
+    <View style={themedStyles.container}>
       <Header
         title="Progression des cours"
       >
@@ -159,15 +153,6 @@ const ProgressionScreen: React.FC = () => {
         </View>
       </Header>
       <View style={themedStyles.container}>
-        <View style={themedStyles.header}>
-          <CsText variant="h2" style={themedStyles.title}>Progression des cours</CsText>
-          <CsText variant="body" style={themedStyles.studentInfo}>
-            Classe: {selectedStudent?.class?.name || 'N/A'}
-          </CsText>
-        </View>
-
-
-
         {loading && !groupedData[selectedSubject!] && (
           <View style={themedStyles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
@@ -314,7 +299,7 @@ const ProgressionScreen: React.FC = () => {
           )
         )}
       </View>
-    </ScreenWrapper>
+    </View>
   );
 };
 
@@ -322,14 +307,6 @@ const styles = (theme: ITheme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
-  },
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingTop: Platform.OS === 'android' ? spacing.sm : 0,
-    paddingBottom: spacing.lg,
-    backgroundColor: theme.background,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
   },
   title: {
     marginBottom: spacing.xs,

@@ -1,7 +1,6 @@
 import {
   Dimensions,
 } from 'react-native';
-import { IStudentDTO } from '@/types/ILoginDTO';
 import React, { } from "react";
 import { StyleSheet, View, Platform } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
@@ -52,7 +51,6 @@ const styles = (theme: ITheme) =>
       backgroundColor: theme.primary,
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
-      paddingTop: Platform.OS === 'ios' ? spacing.lg + Constants.statusBarHeight : spacing.lg,
       borderBottomLeftRadius: borderRadius.large,
       borderBottomRightRadius: borderRadius.large,
       rowGap: spacing.md,

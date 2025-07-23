@@ -1,7 +1,7 @@
 // app/(app)/(protected)/(details)/paymentScreen.tsx
 
 import React, { useCallback, useState } from "react";
-import { StyleSheet, View, Pressable, Modal, ScrollView, Platform } from "react-native"; // Added Platform
+import { StyleSheet, View, Pressable, Modal, ScrollView, Platform } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
 import useDataFetching from '@/hooks/useDataFetching';
@@ -468,8 +468,6 @@ const styles = (theme: ITheme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
-    // Add padding top for status bar, especially needed on Android
-    paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0,
   },
   header: {
     paddingHorizontal: spacing.md,
@@ -560,8 +558,6 @@ const styles = (theme: ITheme) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
-    // Add status bar height padding here too if container padding isn't enough
-    paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0,
   },
   emptyListContainer: {
     justifyContent: 'center',
