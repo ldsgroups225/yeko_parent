@@ -165,7 +165,7 @@ const Home: React.FC = () => {
 
   return (
     <ScreenWrapper>
-      <StatusBar hidden={false} backgroundColor={theme.primary} />
+      <StatusBar hidden={false} backgroundColor={theme.gray200} />
 
       {/* Animated Header */}
       <Animated.View style={[themedStyles.header, headerAnimatedStyle]}>
