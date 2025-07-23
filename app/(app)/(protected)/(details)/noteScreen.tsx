@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,7 +7,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 // Components
-import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard, TitleAndMonths } from "@/components";
+import { CsCard, CsText, AnimatedFlatList, LoadingScreen, SummaryCard } from "@/components";
 
 // Hooks
 import { useNote, useThemedStyles } from "@/hooks/index";
@@ -18,17 +18,14 @@ import { type ITheme, spacing } from "@/styles";
 
 // Utils
 import {
-  calculateAverage,
   formatDate,
   formatNote,
-  groupBy,
   truncateText,
 } from "@/utils";
 import { useAppSelector } from "@/store";
 import { IGroupedNotesDTO, INoteDTO, INoteSummaryDTO } from "@/types/INoteDTO";
 import { NOTE_TYPE } from "@/lib/supabase";
 import { FlatList } from "react-native";
-import { ISemester } from "@/types/ISchoolYearDTO";
 import { Header } from "@/components/Header";
 
 const NoteScreen: React.FC = () => {
@@ -49,20 +46,26 @@ const NoteScreen: React.FC = () => {
   const fetchNotes = async () => {
     try {
       if (!selectedStudent) return [];
+      if (!selectedSemester) {
+        setSelectedSemester(semesters.find(s => s.isCurrent)?.id ?? undefined);
+      }
+
       return await getNotes(
         selectedStudent.id,
+        selectedStudent.class.id,
         [NOTE_TYPE.WRITING_QUESTION, NOTE_TYPE.CLASS_TEST, NOTE_TYPE.LEVEL_TEST],
         currentSchoolYear!.id,
-        selectedSemester,
+        selectedSemester ?? semesters.find(s => s.isCurrent)?.id ?? undefined,
         selectedMonth,
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notes');
+      return [];
     }
   };
 
   const {
-    data: notes,
+    data: noteGroups,
     loading,
     refreshing,
     fetchData: refetchData,
@@ -70,41 +73,48 @@ const NoteScreen: React.FC = () => {
 
   // Computed Data
   const summary: INoteSummaryDTO = useMemo(() => {
-    if (!notes || notes.length === 0)
-      return { averageNote: 0, bestSubject: "", worstSubject: "" };
+    if (!noteGroups || noteGroups.length === 0)
+      return { averageNote: 0, bestSubject: '', worstSubject: '' };
 
-    const averageNote = calculateAverage(notes.map((note) => note.note));
-    const subjectAverages = Object.entries(groupBy(notes, "subjectName")).map(
-      ([subject, subjectNotes]) => ({
-        subject,
-        average: calculateAverage(subjectNotes.map((note) => note.note)),
-      })
-    );
+    // Use the average from the backend for each subject
+    const averages = noteGroups.map(group => group.average ?? 0);
+    const averageNote = averages.length > 0 ? averages.reduce((a, b) => a + b, 0) / averages.length : 0;
 
-    const bestSubject = subjectAverages.reduce((best, current) =>
-      current.average > best.average ? current : best
-    ).subject;
+    // Best subject: subject with the lowest rank (rank as number, 1 is best)
+    const sortedByRank = noteGroups
+      .map((group, idx) => ({
+        idx,
+        rank: Number(group.rank),
+        average: group.average,
+        subjectName: group.notes[0]?.subjectName || '',
+      }))
+      .filter(g => !isNaN(g.rank))
+      .sort((a, b) => a.rank - b.rank);
 
-    const worstSubject = subjectAverages.reduce((worst, current) =>
-      current.average < worst.average ? current : worst
-    ).subject;
+    const bestSubject = sortedByRank.length > 0 ? sortedByRank[0].subjectName : '';
+    const worstSubject = sortedByRank.length > 0 ? sortedByRank[sortedByRank.length - 1].subjectName : '';
 
     return {
       averageNote: Number(averageNote.toFixed(2)),
       bestSubject,
       worstSubject,
     };
-  }, [notes]);
+  }, [noteGroups]);
+
+  // For display, flatten all notes
+  const notes: INoteDTO[] = useMemo(() => {
+    if (!noteGroups) return [];
+    return noteGroups.flatMap(group => group.notes);
+  }, [noteGroups]);
 
   const groupedNotes: IGroupedNotesDTO[] = useMemo(() => {
-    if (!notes) return [];
-    const grouped = groupBy(notes, "subjectName");
-    return Object.entries(grouped).map(([subject, subjectNotes]) => ({
-      title: truncateText(subject, 27),
-      average: calculateAverage(subjectNotes.map((note) => note.note)),
-      data: subjectNotes.sort((a, b) => b.date.getTime() - a.date.getTime()),
+    if (!noteGroups) return [];
+    return noteGroups.map(group => ({
+      title: truncateText(group.notes[0]?.subjectName || '', 27),
+      average: group.average,
+      data: group.notes.sort((a, b) => b.date.getTime() - a.date.getTime()),
     }));
-  }, [notes]);
+  }, [noteGroups]);
 
   const summaryItems = [
     {

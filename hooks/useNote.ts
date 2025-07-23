@@ -3,8 +3,21 @@ import { note } from "@/services/noteService";
 import { INoteDTO } from "@/types/INoteDTO";
 import { useState } from "react";
 
+interface NoteGroup {
+  average: number;
+  rank: string;
+  notes: INoteDTO[];
+}
+
 interface UseNoteReturn {
-  getNotes: (studentId: string, noteType: NOTE_TYPE[], schoolYearId: number, semesterId?: number, month?: number) => Promise<INoteDTO[] | null>;
+  getNotes: (
+    studentId: string,
+    classId: string,
+    noteType: NOTE_TYPE[],
+    schoolYearId: number,
+    semesterId?: number,
+    month?: number,
+  ) => Promise<NoteGroup[] | null>;
   loading: boolean;
   error: string | null;
 }
@@ -15,15 +28,16 @@ export const useNote = (): UseNoteReturn => {
 
   const getNotes = async (
     studentId: string,
+    classId: string,
     noteType: NOTE_TYPE[],
     schoolYearId: number,
     semesterId?: number,
     month?: number,
-  ): Promise<INoteDTO[]> => {
+  ): Promise<NoteGroup[]> => {
     setLoading(true);
     setError(null);
     try {
-      return await note.getNotes(studentId, noteType, schoolYearId, semesterId, month);
+      return await note.getNotes(studentId, classId, noteType, schoolYearId, semesterId, month);
     } catch (err) {
       setError("Failed to get note records.");
       console.error("[E_GET_NOTES]:", err);

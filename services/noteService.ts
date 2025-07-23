@@ -13,30 +13,16 @@ type NoteWithSubjectAndDetails = NoteWithSubject & {
 
 
 export const note = {
-  async getNotes(studentId: string, noteType: NOTE_TYPE[], schoolYearId: number, semesterId?: number, month?: number): Promise<INoteDTO[]> {
+  async getNotes(studentId: string, classId: string, noteType: NOTE_TYPE[], schoolYearId: number, semesterId?: number, month?: number): Promise<{
+    average: number;
+    rank: string;
+    notes: INoteDTO[];
+  }[]> {
     const isHomeworkRequest = noteType.length === 1 && noteType[0] === NOTE_TYPE.HOMEWORK;
 
     try {
       // --- Homework Fetching Logic ---
       if (isHomeworkRequest) {
-        // Fetch class ID for the student in the specified school year
-        const { data: enrollmentData, error: enrollmentError } = await supabase
-          .from('student_school_class')
-          .select('class_id')
-          .eq('student_id', studentId)
-          .eq('school_year_id', schoolYearId)
-          .eq('enrollment_status', 'accepted')
-          .eq('is_active', true)
-          .maybeSingle();
-
-        if (enrollmentError) throw new Error(`Error fetching enrollment: ${enrollmentError.message}`);
-        if (!enrollmentData?.class_id) {
-          console.warn(`No active class found for student ${studentId} in school year ${schoolYearId}. Cannot fetch homework.`);
-          return [];
-        }
-
-        const classId = enrollmentData.class_id;
-
         // Build homework query
         let homeworkQuery = supabase
           .from('notes')
@@ -74,20 +60,31 @@ export const note = {
         if (homeworkError) throw new Error(`Error fetching homework: ${homeworkError.message}`);
 
         // Map homework data
-        return homeworkData.map((hw) => ({
-          id: hw.id,
-          subjectId: hw.subjects!.id,
-          subjectName: hw.subjects!.name,
-          note: 0,
-          date: new Date(hw.created_at),
-          dueDate: hw.due_date ? new Date(hw.due_date) : null,
-          isGraded: hw.is_graded,
-        } satisfies INoteDTO));
+        return [{
+          average: 0,
+          rank: '0',
+          notes: homeworkData.map((hw) => ({
+            id: hw.id,
+            subjectId: hw.subjects!.id,
+            subjectName: hw.subjects!.name,
+            note: 0,
+            date: new Date(hw.created_at),
+            dueDate: hw.due_date ? new Date(hw.due_date) : null,
+            isGraded: hw.is_graded,
+          } satisfies INoteDTO))
+        }];
 
       }
 
       // --- Non-Homework Note Fetching Logic ---
       else {
+        let averageQs = supabase
+          .from('average_grades_view_with_rank')
+          .select('average_grade, subject_id, rank')
+          .eq('student_id', studentId)
+          .eq('school_year_id', schoolYearId)
+          .eq('semester_id', semesterId!)
+
         let notesQuery = supabase
           .from('notes')
           .select(`
@@ -117,24 +114,36 @@ export const note = {
                 .lte('due_date', endDate.toISOString());
         }
 
-        const { data: notesData, error: notesError } = await notesQuery
+        const [
+          { data: averages, error: averageError },
+          { data: notesData, error: notesError }] = await Promise.all([
+            averageQs,
+          notesQuery
           .order('due_date', { ascending: false })
-          .returns<NoteWithSubjectAndDetails[]>();
+          .returns<NoteWithSubjectAndDetails[]>(),
+        ])
 
-        if (notesError) throw new Error(`Error fetching notes: ${notesError.message}`);
+        if (averageError || notesError) {
+          throw new Error(`Error fetching notes: ${notesError?.message} || ${averageError?.message}`);
+        }
 
         // Map notes data (already filtered by inner join on details)
-        return notesData.map((dt) => ({
-          id: dt.details[0].id,
-          subjectId: dt.subjects!.id,
-          subjectName: dt.subjects!.name,
-          note: dt.details[0].note ?? 0,
-          date: new Date(dt.created_at),
-          dueDate: dt.due_date ? new Date(dt.due_date) : null,
-          isGraded: dt.is_graded,
-        } satisfies INoteDTO));
+        return averages?.map((avg) => ({
+          average: avg.average_grade ?? 0,
+          rank: avg.rank ?? '0',
+          notes: notesData
+            ?.filter((note) => note.subjects!.id === avg.subject_id)
+            .map((note) => ({
+              id: note.details[0].id,
+              subjectId: note.subjects!.id,
+              subjectName: note.subjects!.name,
+              note: note.details[0].note ?? 0,
+              date: new Date(note.created_at),
+              dueDate: note.due_date ? new Date(note.due_date) : null,
+              isGraded: note.is_graded,
+            } satisfies INoteDTO)),
+        }));
       }
-
     } catch (error) {
       console.error("Error getting records:", error);
       if (error instanceof Error) throw error;

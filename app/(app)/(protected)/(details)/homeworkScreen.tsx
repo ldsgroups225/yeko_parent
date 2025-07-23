@@ -1,5 +1,5 @@
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -24,7 +24,6 @@ import { Ionicons } from "@expo/vector-icons";
 import borderRadius from "@/styles/borderRadius";
 import { NOTE_TYPE } from "@/lib/supabase";
 import { INoteDTO } from "@/types/INoteDTO";
-import { ISemester } from "@/types/ISchoolYearDTO";
 import { FlatList } from "react-native";
 import { Pressable } from "react-native";
 import { Header } from "@/components/Header";
@@ -39,21 +38,25 @@ const HomeworkScreen: React.FC = () => {
   const { getNotes } = useNote();
 
   // States
-  const [selectedSemester, setSelectedSemester] = useState<ISemester>();
+  const [selectedSemester, setSelectedSemester] = useState<number>();
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>();
 
   // Data Fetching
-  const fetchHomework = useCallback(async () => {
+  async function fetchHomework() {
     if (!selectedStudent) return [];
-
-    return await getNotes(
+    if (!selectedSemester) {
+      setSelectedSemester(semesters.find(s => s.isCurrent)?.id ?? undefined);
+    }
+    const noteGroups = await getNotes(
       selectedStudent.id,
+      selectedStudent.class.id,
       [NOTE_TYPE.HOMEWORK],
       currentSchoolYear!.id,
-      selectedSemester?.id,
+      selectedSemester ?? semesters.find(s => s.isCurrent)?.id ?? undefined,
       selectedMonth,
     );
-  }, [selectedStudent, selectedSemester, selectedMonth]);
+    return noteGroups ? noteGroups.flatMap(group => group.notes) : [];
+  }
 
   const {
     data: homeworks,
@@ -63,13 +66,13 @@ const HomeworkScreen: React.FC = () => {
   } = useDataFetching(fetchHomework, [selectedStudent, selectedSemester, selectedMonth, currentSchoolYear]);
 
   // Computed Data
-  const summary = useMemo(() => {
-    if (!homeworks) return { totalHomework: 0, gradeableHomework: 0 };
-    return {
+  let summary = { totalHomework: 0, gradeableHomework: 0 };
+  if (homeworks) {
+    summary = {
       totalHomework: homeworks.length,
       gradeableHomework: homeworks.filter((hw) => hw.isGraded).length,
     };
-  }, [homeworks]);
+  }
 
   const summaryItems = [
     {
@@ -86,45 +89,46 @@ const HomeworkScreen: React.FC = () => {
     },
   ];
 
-  const groupedHomeworks = useMemo(() => {
-    if (!homeworks) return [];
+  let groupedHomeworks: { title: string; data: INoteDTO[] }[] = [];
+  if (homeworks) {
     const grouped = groupBy(homeworks, (hw) =>
       formatDate(hw.dueDate!, "yyyy-MM-dd")
     );
-    return Object.entries(grouped).map(([date, items]) => ({
+    groupedHomeworks = Object.entries(grouped).map(([date, items]) => ({
       title: formatDate(new Date(date), "EEEE d MMMM yyyy"),
       data: items,
     }));
-  }, [homeworks]);
+  }
 
   // Callbacks
-  const handleMonthChange = (month: number) => {
+  function handleMonthChange(month: number) {
     if (selectedMonth && month === selectedMonth) {
       setSelectedMonth(undefined);
     } else {
       setSelectedMonth(month);
     }
-  };
+  }
 
-  const renderHomeworkItem = useCallback(
-    ({ item }: { item: INoteDTO }) => <HomeworkItem homework={item} />,
-    []
-  );
+  function renderHomeworkItem({ item }: { item: INoteDTO }) {
+    return <HomeworkItem homework={item} />;
+  }
 
-  const renderEmptyState = () => (
-    <View style={themedStyles.emptyStateContainer}>
-      <Ionicons
-        name="book-outline"
-        size={80}
-        color={themedStyles.emptyStateIcon.color}
-      />
-      <CsText style={themedStyles.emptyStateTitle}>Pas de devoirs</CsText>
-      <CsText style={themedStyles.emptyStateDescription}>
-        Votre enfant n'a pas de devoirs pour le moment. Profitez-en pour passer
-        du temps en famille !
-      </CsText>
-    </View>
-  );
+  function renderEmptyState() {
+    return (
+      <View style={themedStyles.emptyStateContainer}>
+        <Ionicons
+          name="book-outline"
+          size={80}
+          color={themedStyles.emptyStateIcon.color}
+        />
+        <CsText style={themedStyles.emptyStateTitle}>Pas de devoirs</CsText>
+        <CsText style={themedStyles.emptyStateDescription}>
+          Votre enfant n'a pas de devoirs pour le moment. Profitez-en pour passer
+          du temps en famille !
+        </CsText>
+      </View>
+    );
+  }
 
   // Main Render
   if (loading) {
@@ -146,17 +150,17 @@ const HomeworkScreen: React.FC = () => {
             <Pressable
               style={[
                 themedStyles.semesterButton,
-                selectedSemester?.id === item.id && themedStyles.selectedSemesterButton,
+                selectedSemester === item.id && themedStyles.selectedSemesterButton,
               ]}
               onPress={() => {
-                if (selectedSemester?.id === item.id) setSelectedSemester(undefined);
-                else setSelectedSemester(item);
+                if (selectedSemester === item.id) setSelectedSemester(undefined);
+                else setSelectedSemester(item.id);
               }}
             >
               <CsText
                 style={StyleSheet.flatten([
                   themedStyles.semesterButtonText,
-                  selectedSemester?.id === item.id &&
+                  selectedSemester === item.id &&
                   themedStyles.selectedSemesterButtonText,
                 ])}
               >
