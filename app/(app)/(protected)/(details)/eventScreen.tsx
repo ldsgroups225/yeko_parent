@@ -1,6 +1,6 @@
 // app/(app)/(protected)/(details)/eventScreen.tsx
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { StyleSheet, View, Platform, SectionList, ActivityIndicator } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
@@ -70,6 +70,11 @@ const EventScreen: React.FC = () => {
       setIsRefreshing(false);
     }
   }, [fetchEventsFromSource, currentPage]);
+
+  useEffect(() => {
+    loadEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRefresh = () => {
     loadEvents(true);
