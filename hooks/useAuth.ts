@@ -112,7 +112,7 @@ export const useAuth = (): useAuthReturn => {
         return null;
       }
     } catch (err) {
-      console.error("[E_AUTH_CHECK]:", err);
+      // console.error("[E_AUTH_CHECK]:", err);
       await logout();
       return null;
     } finally {
@@ -142,7 +142,7 @@ export const useAuth = (): useAuthReturn => {
       await auth.createAccount(email, password, firstName, lastName, phone);
       return true;
     } catch (error) {
-      console.error("[E_AUTH_REGISTER]:", error);
+      // console.error("[E_AUTH_REGISTER]:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -203,7 +203,7 @@ export const useAuth = (): useAuthReturn => {
       setLoading(true);
       await auth.setUserPushToken(userId, token);
     } catch (error) {
-      console.error("[E_AUTH_PUSH_TOKEN]:", error);
+      // console.error("[E_AUTH_PUSH_TOKEN]:", error);
       throw error;
     } finally {
       setLoading(false);
