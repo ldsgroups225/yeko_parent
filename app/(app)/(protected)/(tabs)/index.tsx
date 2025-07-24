@@ -81,7 +81,8 @@ const Home: React.FC = () => {
   }
 
   // Data for Image Background
-  const image = { uri: selectedChild?.school.imageUrl ?? "" };
+  const schoolImageBg = selectedChild?.school.imageUrl ? { uri: selectedChild.school.imageUrl } : require("@/assets/images/school-image-placeholder.jpg")
+
 
   // Animated Styles
   const headerAnimatedStyle = useAnimatedStyle(() => ({
@@ -170,7 +171,7 @@ const Home: React.FC = () => {
       {/* Animated Header */}
       <Animated.View style={[themedStyles.header, headerAnimatedStyle]}>
         <ImageBackground
-          source={image}
+          source={schoolImageBg}
           style={themedStyles.headerBackground}
           resizeMode="cover"
         >
@@ -187,22 +188,26 @@ const Home: React.FC = () => {
               />
               <View style={themedStyles.userInfoContainer}>
                 <TouchableOpacity
-                  style={themedStyles.userInfo}
-                  onPress={() => setPopoverVisible(true)}
+                  style={user.children.length > 0 ? themedStyles.userInfo : {}}
+                  onPress={() => user.children.length > 0 ? setPopoverVisible(true) : null}
                 >
                   <Image
                     source={selectedChild?.avatarUrl ? { uri: selectedChild.avatarUrl } : require("@/assets/images/profile-pic.webp")}
                     style={themedStyles.avatar}
                   />
-                  <View style={themedStyles.userTextContainer}>
-                    <CsText variant="body" style={themedStyles.userName}>
-                      {formatFullName(selectedChild?.lastName ?? "", selectedChild?.firstName ?? "")}
-                    </CsText>
-                    <CsText variant="caption" style={themedStyles.userRole}>
-                      {selectedChild?.class.name} - ({selectedChild?.idNumber})
-                    </CsText>
-                  </View>
-                  <Ionicons name="chevron-down" size={20} color="white" />
+                  {user.children.length > 0 && (
+                    <>
+                      <View style={themedStyles.userTextContainer}>
+                        <CsText variant="body" style={themedStyles.userName}>
+                          {formatFullName(selectedChild?.lastName ?? "", selectedChild?.firstName ?? "")}
+                        </CsText>
+                        <CsText variant="caption" style={themedStyles.userRole}>
+                          {selectedChild?.class.name} - ({selectedChild?.idNumber})
+                        </CsText>
+                      </View>
+                      <Ionicons name="chevron-down" size={20} color="white" />
+                    </>
+                  )}
                 </TouchableOpacity>
 
                 {/* Child Selection Popover */}

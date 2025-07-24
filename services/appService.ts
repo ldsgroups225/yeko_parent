@@ -32,37 +32,39 @@ export const auth = {
   async createAccount(
     email: string,
     password: string,
-    firstName?: string,
-    lastName?: string,
-    phone?: string
+    // firstName?: string,
+    // lastName?: string,
+    // phone?: string
   ): Promise<AuthResponse> {
     try {
       const newAccountResponse = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            phone: phone,
-          },
-        },
+        // options: {
+        //   data: {
+        //     first_name: firstName,
+        //     last_name: lastName,
+        //     phone: phone,
+        //   },
+        // },
       });
 
-      if (newAccountResponse.error)
-        throw new Error(newAccountResponse.error.message);
+      if (newAccountResponse.error) {
+        throw new Error("Une erreur est survenue lors de la création du compte. Veuillez réessayer.");
+      }
 
       // create it role
-      const newRoleResponse = await supabase.from("user_roles").insert({
+      const { error: newRoleError } = await supabase.from("user_roles").insert({
         user_id: newAccountResponse.data.user!.id,
         role_id: ERole.PARENT,
       });
 
-      if (newRoleResponse.error) throw new Error(newRoleResponse.error.message);
+      if (newRoleError) {
+        throw new Error("Une erreur est survenue lors de la création du compte. Veuillez réessayer.");
+      }
 
       return newAccountResponse;
     } catch (error) {
-      console.error("Error creating account:", error);
       throw error;
     }
   },
@@ -80,13 +82,14 @@ export const auth = {
     password: string
   ): Promise<void> {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      data.user?.confirmed_at
       if (error) {
-        console.log(error.message)
         if (error.message === 'Invalid login credentials') throw new Error("Email ou mot de passe incorrect");
+        if (error.message === 'Email not confirmed') throw new Error("Veuillez confirmer votre email avec le lien reçu par email.");
         else throw new Error('Une erreur est survenue lors de la connexion');
       }
     } catch (error) {
@@ -149,5 +152,52 @@ export const auth = {
       console.error("Error setting push token:", error);
       throw error;
     }
+  },
+
+  /**
+   * Handles Google OAuth registration and user/role creation.
+   * @returns {Promise<{ url: string }>} - The URL for the Google OAuth redirect.
+   */
+  async signInWithGoogle(): Promise<{ url: string }> {
+    const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    if (error) throw new Error(error.message);
+    // The redirect will happen, so this only works for Expo Go or web popup flows
+    return { url: data.url };
+  },
+
+  /**
+   * Completes the user profile after Google OAuth if needed.
+   * @param {string} userId - The Supabase user ID.
+   * @param {string} email - The user's email.
+   * @param {string | null} firstName
+   * @param {string | null} lastName
+   * @param {string | null} phone
+   */
+  async completeUserProfile(userId: string, email: string, firstName: string | null, lastName: string | null, phone: string | null) {
+      // create it profile and role
+      const { error: newProfileError } = await supabase.from("users").upsert({
+        id: userId,
+        email: email,
+        first_name: firstName,
+        last_name: lastName,
+        phone: phone || null,
+      });
+
+      if (newProfileError) {
+        console.error("Error creating profile or role:", newProfileError);
+        throw new Error("Une erreur est survenue lors de la création du compte. Veuillez réessayer.")
+      }
+  },
+
+  /**
+   * Resend the confirmation email to the current user.
+   */
+  async resendConfirmationEmail() {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user?.email) {
+      throw new Error("Vous devez être connecté pour renvoyer l'email de confirmation.");
+    }
+    const { error } = await supabase.auth.resend({ type: 'signup', email: userData.user.email });
+    if (error) throw new Error(error.message);
   },
 };

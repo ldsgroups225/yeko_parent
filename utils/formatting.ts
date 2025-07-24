@@ -51,3 +51,12 @@ export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength - 3) + "...";
 }
+
+/**
+ * Get UserName from email
+ * @param email - The email of the user.
+ * @returns {string} The user name.
+ */
+export function getUserNameFromEmail(email: string): string {
+  return email.split("@")[0];
+}

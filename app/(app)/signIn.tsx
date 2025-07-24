@@ -48,16 +48,26 @@ export default function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Navigation Callbacks
-  const goHomePage = useCallback(
-    (user: IUserDTO) => {
-      const fullName = formatFullName(user.firstName, user.lastName);
-      showToast(`Bienvenue ! ${fullName}`);
-      dispatch(setUser(user));
-      clearForm();
+  const goHomePage = async (user: IUserDTO) => {
+    const isProfileComplete = Boolean(user.firstName && user.lastName && user.phone);
+    const fullName = formatFullName(user.firstName, user.lastName);
+
+    // sleep 300ms
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    showToast(`Bienvenue ! ${fullName}`);
+    dispatch(setUser(user));
+    clearForm();
+    if (isProfileComplete) {
       router.replace("/(app)/(protected)/(tabs)");
-    },
-    [dispatch, router]
-  );
+    } else {
+      router.replace("/(app)/(protected)/completeProfile");
+    }
+  }
+
+  const goToSignUp = () => {
+    router.push('/signUp')
+  };
 
   // Auth Callbacks
   const handleLogin = async () => {
@@ -68,10 +78,14 @@ export default function SignInScreen() {
     try {
       const auth = await login(email, password);
       if (!auth.user) throw new Error('Une erreur est survenue lors de la connexion. Veuillez réessayer.');
-      
-      goHomePage(auth.user);
+
+      await goHomePage(auth.user);
     } catch (error) {
-      showToast((error as Error).message , ToastColorEnum.Error, 7000);
+      if ((error as Error).message === "Veuillez confirmer votre email avec le lien reçu par email.") {
+        router.replace("/confirmEmailNotice");
+      } else {
+        showToast((error as Error).message, ToastColorEnum.Error, 7000);
+      }
     }
   };
 
@@ -160,7 +174,7 @@ export default function SignInScreen() {
             loading={loading}
           />
 
-          <View style={themedStyles.divider}>
+          {/* <View style={themedStyles.divider}>
             <View style={themedStyles.dividerLine} />
             <CsText variant="caption" style={themedStyles.dividerText}>
               Ou
@@ -176,7 +190,7 @@ export default function SignInScreen() {
               <Ionicons name="logo-google" size={24} color={theme.primary} />
             }
             style={themedStyles.button}
-          />
+          /> */}
         </Animated.View>
 
         <Animated.View
@@ -185,7 +199,7 @@ export default function SignInScreen() {
         >
           <CsText variant="body">Pas encore de compte ?</CsText>
           <TouchableOpacity
-            onPress={() => showToast("Fonctionnalité non implémentée.")}
+            onPress={goToSignUp}
           >
             <CsText variant="body" style={themedStyles.registerText}>
               {" "}

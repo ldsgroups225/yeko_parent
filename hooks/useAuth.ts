@@ -63,6 +63,7 @@ export const useAuth = (): useAuthReturn => {
         data: { session },
       } = await auth.getAccount();
 
+
       if (session) {
         const { data: userData } = await supabase
           .from(USERS_TABLE_ID)
@@ -72,6 +73,7 @@ export const useAuth = (): useAuthReturn => {
           .eq("id", session.user.id)
           .eq("user_roles.role_id", ERole.PARENT)
           .single();
+
 
         if (!userData) {
           await logout();
@@ -125,21 +127,19 @@ export const useAuth = (): useAuthReturn => {
    * @async
    * @param {string} email - User's email address.
    * @param {string} password - User's password.
-   * @param {string} [firstName] - User's first name (optional).
-   * @param {string} [lastName] - User's last name (optional).
-   * @param {string} [phone] - User's phone number (optional).
    * @returns {Promise<boolean>} - Returns true if registration is successful.
    */
   const register = async (
     email: string,
     password: string,
-    firstName?: string,
-    lastName?: string,
-    phone?: string
+    // firstName?: string,
+    // lastName?: string,
+    // phone?: string
   ): Promise<boolean> => {
     try {
       setLoading(true);
-      await auth.createAccount(email, password, firstName, lastName, phone);
+      // await auth.createAccount(email, password, firstName, lastName, phone);
+      await auth.createAccount(email, password);
       return true;
     } catch (error) {
       // console.error("[E_AUTH_REGISTER]:", error);
