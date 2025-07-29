@@ -10,7 +10,6 @@ import { paymentService, PaymentData } from '@/services/paymentService';
 import { Ionicons } from '@expo/vector-icons';
 import { showToast } from '@/helpers/toast/showToast';
 import { ToastColorEnum } from '@/components/ToastMessage/ToastColorEnum';
-import Constants from 'expo-constants'; // Import Constants
 
 import {
   CsCard,

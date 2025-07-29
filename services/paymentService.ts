@@ -17,7 +17,7 @@ export interface PaymentData {
 export const paymentService = {
   async fetchPaymentData(studentId: string): Promise<PaymentData | null> {
     try {
-      // 1. Query payment_details_view
+      // 1. First try to get data from payment_details_view
       const { data: paymentDetails } = await supabase
         .from('payment_details_view')
         .select('enrollment_id, total_amount, remaining_amount, payment_plan_id')
@@ -26,15 +26,54 @@ export const paymentService = {
         .limit(1)
         .maybeSingle();
 
-      if (!paymentDetails) {
-        return null;
+      let enrollmentId: string;
+      let paymentPlanId: string;
+      let totalAmount = 0;
+      let remainingAmount = 0;
+
+      if (paymentDetails) {
+        // If payment_details_view has data, use it
+        enrollmentId = paymentDetails.enrollment_id!;
+        paymentPlanId = paymentDetails.payment_plan_id!;
+        totalAmount = paymentDetails.total_amount ?? 0;
+        remainingAmount = paymentDetails.remaining_amount ?? 0;
+      } else {
+        // If payment_details_view is empty, get enrollment and payment plan directly
+        const { data: enrollment } = await supabase
+          .from('student_school_class')
+          .select('id')
+          .eq('student_id', studentId)
+          .is('is_active', true)
+          .eq('enrollment_status', 'accepted')
+          .single();
+
+        if (!enrollment) {
+          throw new Error('No active enrollment found');
+        }
+
+        enrollmentId = enrollment.id;
+
+        // Get payment plan
+        const { data: paymentPlan } = await supabase
+          .from('payment_plans')
+          .select('*')
+          .eq('enrollment_id', enrollmentId)
+          .single();
+
+        if (!paymentPlan) {
+          throw new Error('No payment plan found');
+        }
+
+        paymentPlanId = paymentPlan.id;
+        totalAmount = paymentPlan.total_amount;
+        remainingAmount = paymentPlan.total_amount - paymentPlan.amount_paid;
       }
 
       // Get installments
       const { data: installments } = await supabase
         .from('payment_installments')
         .select('*')
-        .eq('payment_plan_id', paymentDetails.payment_plan_id!)
+        .eq('payment_plan_id', paymentPlanId)
         .order('due_date', { ascending: true });
 
       // Get payment history
@@ -46,8 +85,8 @@ export const paymentService = {
 
       return {
         stats: {
-          totalAmount: paymentDetails.total_amount ?? 0,
-          remainingAmount: paymentDetails.remaining_amount ?? 0,
+          totalAmount,
+          remainingAmount,
         },
         installments: installments || [],
         payments: payments || []
