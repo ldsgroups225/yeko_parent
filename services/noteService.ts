@@ -13,7 +13,7 @@ type NoteWithSubjectAndDetails = NoteWithSubject & {
 
 
 export const note = {
-  async getNotes(studentId: string, classId: string, noteType: NOTE_TYPE[], schoolYearId: number, semesterId?: number, month?: number): Promise<{
+  async getNotes(studentId: string, classId: string, noteType: NOTE_TYPE[], schoolYearId: number, semesterId?: number): Promise<{
     average: number;
     rank: string;
     notes: INoteDTO[];
@@ -37,19 +37,8 @@ export const note = {
           .eq('is_published', true);
 
         // Apply semester filter
-        if (semesterId && !month) {
+        if (semesterId) {
           homeworkQuery = homeworkQuery.eq('semester_id', semesterId);
-        }
-
-        // Apply month filter (using due_date)
-        if (month !== undefined && month >= 0 && month <= 11) {
-            const calendarYear = month >= 8 ? schoolYearId : schoolYearId + 1; // Sept-Dec use schoolYearId, Jan-Jun use next year
-            const startDate = new Date(calendarYear, month, 1); // First day of the month
-            const endDate = new Date(calendarYear, month + 1, 0); // Last day of the month
-
-            homeworkQuery = homeworkQuery
-                .gte('due_date', startDate.toISOString())
-                .lte('due_date', endDate.toISOString());
         }
 
 
@@ -99,19 +88,8 @@ export const note = {
           .eq('is_published', true);
 
         // Apply semester filter
-        if (semesterId && !month) {
+        if (semesterId) {
           notesQuery = notesQuery.eq('semester_id', semesterId);
-        }
-
-         // Apply month filter (using due_date, consistent with homework)
-         if (month !== undefined && month >= 0 && month <= 11) {
-            const calendarYear = month >= 8 ? schoolYearId : schoolYearId + 1;
-            const startDate = new Date(calendarYear, month, 1);
-            const endDate = new Date(calendarYear, month + 1, 0);
-
-            notesQuery = notesQuery
-                .gte('due_date', startDate.toISOString())
-                .lte('due_date', endDate.toISOString());
         }
 
         const [

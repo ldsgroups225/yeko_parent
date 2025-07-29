@@ -37,7 +37,7 @@ export const useNote = (): UseNoteReturn => {
     setLoading(true);
     setError(null);
     try {
-      return await note.getNotes(studentId, classId, noteType, schoolYearId, semesterId, month);
+      return await note.getNotes(studentId, classId, noteType, schoolYearId, semesterId);
     } catch (err) {
       setError("Failed to get note records.");
       console.error("[E_GET_NOTES]:", err);

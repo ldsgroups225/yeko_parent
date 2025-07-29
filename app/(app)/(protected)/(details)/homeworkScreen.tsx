@@ -39,7 +39,6 @@ const HomeworkScreen: React.FC = () => {
 
   // States
   const [selectedSemester, setSelectedSemester] = useState<number>();
-  const [selectedMonth, setSelectedMonth] = useState<number | undefined>();
 
   // Data Fetching
   async function fetchHomework() {
@@ -53,7 +52,6 @@ const HomeworkScreen: React.FC = () => {
       [NOTE_TYPE.HOMEWORK],
       currentSchoolYear!.id,
       selectedSemester ?? semesters.find(s => s.isCurrent)?.id ?? undefined,
-      selectedMonth,
     );
     return noteGroups ? noteGroups.flatMap(group => group.notes) : [];
   }
@@ -63,7 +61,7 @@ const HomeworkScreen: React.FC = () => {
     loading,
     refreshing,
     fetchData: refetchData,
-  } = useDataFetching(fetchHomework, [selectedStudent, selectedSemester, selectedMonth, currentSchoolYear]);
+  } = useDataFetching(fetchHomework, [selectedStudent, selectedSemester, currentSchoolYear]);
 
   // Computed Data
   let summary = { totalHomework: 0, gradeableHomework: 0 };
@@ -101,14 +99,6 @@ const HomeworkScreen: React.FC = () => {
   }
 
   // Callbacks
-  function handleMonthChange(month: number) {
-    if (selectedMonth && month === selectedMonth) {
-      setSelectedMonth(undefined);
-    } else {
-      setSelectedMonth(month);
-    }
-  }
-
   function renderHomeworkItem({ item }: { item: INoteDTO }) {
     return <HomeworkItem homework={item} />;
   }
@@ -170,13 +160,6 @@ const HomeworkScreen: React.FC = () => {
           )}
         />
       </Header>
-      {/* <TitleAndMonths
-        title="Devoirs"
-        selectedMonth={selectedMonth}
-        onMonthChange={handleMonthChange}
-      /> */}
-
-
 
       <AnimatedFlatList
         style={themedStyles.homeworkList}

@@ -40,7 +40,6 @@ const NoteScreen: React.FC = () => {
   // States
   const [error, setError] = useState<string | null>(null);
   const [selectedSemester, setSelectedSemester] = useState<number>();
-  const [selectedMonth, setSelectedMonth] = useState<number>();
 
   // Data Fetching
   const fetchNotes = async () => {
@@ -56,7 +55,6 @@ const NoteScreen: React.FC = () => {
         [NOTE_TYPE.WRITING_QUESTION, NOTE_TYPE.CLASS_TEST, NOTE_TYPE.LEVEL_TEST],
         currentSchoolYear!.id,
         selectedSemester ?? semesters.find(s => s.isCurrent)?.id ?? undefined,
-        selectedMonth,
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notes');
@@ -69,7 +67,7 @@ const NoteScreen: React.FC = () => {
     loading,
     refreshing,
     fetchData: refetchData,
-  } = useDataFetching(fetchNotes, [selectedStudent, selectedSemester, selectedMonth, currentSchoolYear]);
+  } = useDataFetching(fetchNotes, [selectedStudent, selectedSemester, currentSchoolYear]);
 
   // Computed Data
   const summary: INoteSummaryDTO = useMemo(() => {
@@ -137,15 +135,6 @@ const NoteScreen: React.FC = () => {
     },
   ];
 
-  // Callbacks
-  const handleMonthChange = (month: number) => {
-    if (selectedMonth && month === selectedMonth) {
-      setSelectedMonth(undefined);
-    } else {
-      setSelectedMonth(month);
-    }
-  };
-
   // Main Render
   if (loading) {
     return <LoadingScreen />;
@@ -190,12 +179,6 @@ const NoteScreen: React.FC = () => {
           )}
         />
       </Header>
-      {/* <TitleAndMonths
-        title="Notes et moyennes"
-        selectedMonth={selectedMonth}
-        onMonthChange={handleMonthChange}
-      /> */}
-
 
       <AnimatedFlatList
         style={themedStyles.notesList}
