@@ -1,15 +1,13 @@
 // app/(app)/(protected)/(details)/paymentScreen.tsx
 
 import React, { useCallback, useState } from "react";
-import { StyleSheet, View, Pressable, Modal, ScrollView, Platform } from "react-native";
+import { StyleSheet, View, Pressable, ScrollView, Platform } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
 import useDataFetching from '@/hooks/useDataFetching';
 import { formatCurrency, formatDate } from '@/utils';
 import { paymentService, PaymentData } from '@/services/paymentService';
 import { Ionicons } from '@expo/vector-icons';
-import { showToast } from '@/helpers/toast/showToast';
-import { ToastColorEnum } from '@/components/ToastMessage/ToastColorEnum';
 
 import {
   CsCard,
@@ -18,7 +16,6 @@ import {
   LoadingScreen,
   SummaryCard,
   CsButton,
-  CsDivider,
 } from "@/components";
 
 import { useTheme, useThemedStyles } from "@/hooks";
@@ -39,10 +36,10 @@ const PaymentScreen: React.FC = () => {
   const themedStyles = useThemedStyles(styles);
 
   const [activeTab, setActiveTab] = useState<TabType>('installments');
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedInstallment, setSelectedInstallment] = useState<PaymentData['installments'][0] | null>(null);
-  const [processingPayment, setProcessingPayment] = useState(false);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
+  // const [showPaymentModal, setShowPaymentModal] = useState(false);
+  // const [selectedInstallment, setSelectedInstallment] = useState<PaymentData['installments'][0] | null>(null);
+  // const [processingPayment, setProcessingPayment] = useState(false);
+  // const [paymentError, setPaymentError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<FilterStatus>('all');
 
   const fetchPaymentData = async () => {
@@ -57,35 +54,35 @@ const PaymentScreen: React.FC = () => {
     fetchData: refetchData,
   } = useDataFetching<PaymentData>(fetchPaymentData, [selectedStudent]);
 
-  const handlePaymentInitiation = async (paymentMethod: string) => {
-    if (!selectedStudent?.id || !selectedInstallment) return;
+  // const handlePaymentInitiation = async (paymentMethod: string) => {
+  //   if (!selectedStudent?.id || !selectedInstallment) return;
 
-    setProcessingPayment(true);
-    setPaymentError(null);
-    try {
-      const result = await paymentService.initiatePayment(
-        selectedStudent.id,
-        selectedInstallment.amount,
-        paymentMethod
-      );
+  //   setProcessingPayment(true);
+  //   setPaymentError(null);
+  //   try {
+  //     const result = await paymentService.initiatePayment(
+  //       selectedStudent.id,
+  //       selectedInstallment.amount,
+  //       paymentMethod
+  //     );
 
-      if (result.success) {
-        showToast("Paiement initié avec succès!", ToastColorEnum.Success);
-        await refetchData();
-        setShowPaymentModal(false);
-        setSelectedInstallment(null);
-      } else {
-        setPaymentError(result.error || "Échec de l'initiation du paiement.");
-        showToast(result.error || "Échec du paiement", ToastColorEnum.Error, 7000);
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Une erreur inconnue est survenue.";
-      setPaymentError(message);
-      showToast(message, ToastColorEnum.Error, 7000);
-    } finally {
-      setProcessingPayment(false);
-    }
-  };
+  //     if (result.success) {
+  //       showToast("Paiement initié avec succès!", ToastColorEnum.Success);
+  //       await refetchData();
+  //       setShowPaymentModal(false);
+  //       setSelectedInstallment(null);
+  //     } else {
+  //       setPaymentError(result.error || "Échec de l'initiation du paiement.");
+  //       showToast(result.error || "Échec du paiement", ToastColorEnum.Error, 7000);
+  //     }
+  //   } catch (error) {
+  //     const message = error instanceof Error ? error.message : "Une erreur inconnue est survenue.";
+  //     setPaymentError(message);
+  //     showToast(message, ToastColorEnum.Error, 7000);
+  //   } finally {
+  //     setProcessingPayment(false);
+  //   }
+  // };
 
   const getStatusInfo = (status: FilterStatus | 'pending' | 'paid') => {
     switch (status) {
@@ -104,7 +101,7 @@ const PaymentScreen: React.FC = () => {
     if ('due_date' in item) {
       // Installment item
       const statusInfo = getStatusInfo(item.status as FilterStatus | 'pending');
-      const isPayable = item.status === 'pending' || item.status === 'overdue';
+      // const isPayable = item.status === 'pending' || item.status === 'overdue';
 
       return (
         <CsCard style={themedStyles.listItemCard}>
@@ -118,7 +115,7 @@ const PaymentScreen: React.FC = () => {
               <CsText style={StyleSheet.flatten([themedStyles.statusText, { color: statusInfo.color }])}>{statusInfo.text}</CsText>
             </View>
           </View>
-          {isPayable && (
+          {/* {isPayable && (
             <CsButton
               size="small"
               style={themedStyles.payButton}
@@ -130,7 +127,7 @@ const PaymentScreen: React.FC = () => {
               title="Payer"
               icon={<Ionicons name="card-outline" size={16} color={theme.background} />}
             />
-          )}
+          )} */}
         </CsCard>
       );
     } else {
@@ -237,117 +234,117 @@ const PaymentScreen: React.FC = () => {
     );
   };
 
-  const handleNewPayment = () => {
-    // Find the earliest overdue or pending installment
-    const nextInstallment = data?.installments
-      .filter(i => i.status === 'pending' || i.status === 'overdue')
-      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
+  // const handleNewPayment = () => {
+  //   // Find the earliest overdue or pending installment
+  //   const nextInstallment = data?.installments
+  //     .filter(i => i.status === 'pending' || i.status === 'overdue')
+  //     .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
 
-    if (nextInstallment) {
-      setSelectedInstallment(nextInstallment);
-      setPaymentError(null);
-      setShowPaymentModal(true);
-    } else {
-      showToast("Aucune tranche en attente ou en retard à payer.", ToastColorEnum.Info);
-    }
-  };
+  //   if (nextInstallment) {
+  //     setSelectedInstallment(nextInstallment);
+  //     setPaymentError(null);
+  //     setShowPaymentModal(true);
+  //   } else {
+  //     showToast("Aucune tranche en attente ou en retard à payer.", ToastColorEnum.Info);
+  //   }
+  // };
 
-  const renderPaymentModal = () => {
-    if (!showPaymentModal || !selectedInstallment) return null;
+  // const renderPaymentModal = () => {
+  //   if (!showPaymentModal || !selectedInstallment) return null;
 
-    const dueDate = formatDate(selectedInstallment.due_date, 'd MMMM yyyy');
-    const isOverdue = selectedInstallment.status === 'overdue';
+  //   const dueDate = formatDate(selectedInstallment.due_date, 'd MMMM yyyy');
+  //   const isOverdue = selectedInstallment.status === 'overdue';
 
-    return (
-      <Modal
-        visible={showPaymentModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => !processingPayment && setShowPaymentModal(false)}
-      >
-        <Pressable
-          style={themedStyles.modalOverlay}
-          onPress={() => !processingPayment && setShowPaymentModal(false)}
-        >
-          {/* Prevent closing when clicking inside the card */}
-          <Pressable style={themedStyles.modalCard} onPress={() => { }}>
-            {/* Header */}
-            <View style={themedStyles.modalHeader}>
-              <CsText variant="h3" style={themedStyles.modalTitle}>
-                Payer la tranche
-              </CsText>
-              <Pressable
-                style={themedStyles.closeButton}
-                onPress={() => !processingPayment && setShowPaymentModal(false)}
-                disabled={processingPayment}
-                hitSlop={10}
-              >
-                <Ionicons
-                  name="close"
-                  size={24}
-                  color={themedStyles.closeIcon.color}
-                />
-              </Pressable>
-            </View>
+  //   return (
+  //     <Modal
+  //       visible={showPaymentModal}
+  //       transparent
+  //       animationType="fade"
+  //       onRequestClose={() => !processingPayment && setShowPaymentModal(false)}
+  //     >
+  //       <Pressable
+  //         style={themedStyles.modalOverlay}
+  //         onPress={() => !processingPayment && setShowPaymentModal(false)}
+  //       >
+  //         {/* Prevent closing when clicking inside the card */}
+  //         <Pressable style={themedStyles.modalCard} onPress={() => { }}>
+  //           {/* Header */}
+  //           <View style={themedStyles.modalHeader}>
+  //             <CsText variant="h3" style={themedStyles.modalTitle}>
+  //               Payer la tranche
+  //             </CsText>
+  //             <Pressable
+  //               style={themedStyles.closeButton}
+  //               onPress={() => !processingPayment && setShowPaymentModal(false)}
+  //               disabled={processingPayment}
+  //               hitSlop={10}
+  //             >
+  //               <Ionicons
+  //                 name="close"
+  //                 size={24}
+  //                 color={themedStyles.closeIcon.color}
+  //               />
+  //             </Pressable>
+  //           </View>
 
-            {/* Payment Details */}
-            <View style={themedStyles.paymentDetails}>
-              <View style={themedStyles.paymentRow}>
-                <CsText style={themedStyles.paymentLabel}>Montant</CsText>
-                <CsText style={themedStyles.paymentValue}>
-                  {formatCurrency(selectedInstallment.amount)}
-                </CsText>
-              </View>
-              <View style={themedStyles.paymentRow}>
-                <CsText style={themedStyles.paymentLabel}>Échéance</CsText>
-                <CsText
-                  style={StyleSheet.flatten([
-                    themedStyles.paymentValue,
-                    isOverdue && { color: theme.error }
-                  ])}
-                >
-                  {dueDate} {isOverdue && '(En retard)'}
-                </CsText>
-              </View>
-            </View>
+  //           {/* Payment Details */}
+  //           <View style={themedStyles.paymentDetails}>
+  //             <View style={themedStyles.paymentRow}>
+  //               <CsText style={themedStyles.paymentLabel}>Montant</CsText>
+  //               <CsText style={themedStyles.paymentValue}>
+  //                 {formatCurrency(selectedInstallment.amount)}
+  //               </CsText>
+  //             </View>
+  //             <View style={themedStyles.paymentRow}>
+  //               <CsText style={themedStyles.paymentLabel}>Échéance</CsText>
+  //               <CsText
+  //                 style={StyleSheet.flatten([
+  //                   themedStyles.paymentValue,
+  //                   isOverdue && { color: theme.error }
+  //                 ])}
+  //               >
+  //                 {dueDate} {isOverdue && '(En retard)'}
+  //               </CsText>
+  //             </View>
+  //           </View>
 
-            <CsDivider />
+  //           <CsDivider />
 
-            {/* Error Message Area */}
-            {paymentError && (
-              <View style={themedStyles.errorContainer}>
-                <Ionicons name="alert-circle-outline" size={20} color={theme.error} style={{ marginRight: spacing.sm }} />
-                <CsText style={themedStyles.errorText}>{paymentError}</CsText>
-              </View>
-            )}
+  //           {/* Error Message Area */}
+  //           {paymentError && (
+  //             <View style={themedStyles.errorContainer}>
+  //               <Ionicons name="alert-circle-outline" size={20} color={theme.error} style={{ marginRight: spacing.sm }} />
+  //               <CsText style={themedStyles.errorText}>{paymentError}</CsText>
+  //             </View>
+  //           )}
 
-            {/* Payment Methods */}
-            <CsText style={themedStyles.modalSubtitle}>
-              Sélectionnez un mode de paiement
-            </CsText>
+  //           {/* Payment Methods */}
+  //           <CsText style={themedStyles.modalSubtitle}>
+  //             Sélectionnez un mode de paiement
+  //           </CsText>
 
-            <CsButton
-              title="Mobile Money"
-              onPress={() => handlePaymentInitiation('mobile_money')}
-              loading={processingPayment}
-              disabled={processingPayment}
-              style={themedStyles.paymentMethodButton}
-              icon={<Ionicons name="phone-portrait-outline" size={20} color={theme.background} />}
-            />
+  //           <CsButton
+  //             title="Mobile Money"
+  //             onPress={() => handlePaymentInitiation('mobile_money')}
+  //             loading={processingPayment}
+  //             disabled={processingPayment}
+  //             style={themedStyles.paymentMethodButton}
+  //             icon={<Ionicons name="phone-portrait-outline" size={20} color={theme.background} />}
+  //           />
 
-            <CsButton
-              title="Transfert Bancaire"
-              onPress={() => handlePaymentInitiation('bank_transfer')}
-              loading={processingPayment}
-              disabled={processingPayment}
-              style={themedStyles.paymentMethodButton}
-              icon={<Ionicons name="card-outline" size={20} color={theme.background} />}
-            />
-          </Pressable>
-        </Pressable>
-      </Modal>
-    );
-  };
+  //           <CsButton
+  //             title="Transfert Bancaire"
+  //             onPress={() => handlePaymentInitiation('bank_transfer')}
+  //             loading={processingPayment}
+  //             disabled={processingPayment}
+  //             style={themedStyles.paymentMethodButton}
+  //             icon={<Ionicons name="card-outline" size={20} color={theme.background} />}
+  //           />
+  //         </Pressable>
+  //       </Pressable>
+  //     </Modal>
+  //   );
+  // };
 
   if (loading && !data) return <LoadingScreen />;
 
@@ -444,8 +441,8 @@ const PaymentScreen: React.FC = () => {
         style={{ flex: 1 }}
       />
 
-      {/* New Payment FAB */}
-      {activeTab === 'installments' && hasPendingInstallments && (
+      {/* Payment FAB */}
+      {/* {activeTab === 'installments' && hasPendingInstallments && (
         <View style={themedStyles.fab}>
           <Pressable
             onPress={handleNewPayment}
@@ -454,10 +451,10 @@ const PaymentScreen: React.FC = () => {
             <Ionicons name="add" size={28} color={theme.background} />
           </Pressable>
         </View>
-      )}
+      )} */}
 
       {/* Payment Modal */}
-      {renderPaymentModal()}
+      {/* {renderPaymentModal()} */}
     </View>
   );
 };
