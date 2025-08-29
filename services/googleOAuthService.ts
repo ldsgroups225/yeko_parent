@@ -42,7 +42,7 @@ export function configureGoogleSignIn(): void {
   const iosClientId = process.env.EXPO_PUBLIC_IOS_CLIENT_ID;
   
   if (!webClientId) {
-    console.warn('EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID not found in environment');
+    console.warn('EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID introuvable dans l\'environnement');
     return;
   }
 
@@ -68,7 +68,7 @@ export async function signInWithGoogle(): Promise<GoogleOAuthResult> {
     const userInfo = await GoogleSignin.signIn();
     
     if (!userInfo.data?.idToken) {
-      throw new Error('No ID token received from Google');
+      throw new Error('Erreur lors de la connexion avec Google');
     }
 
     // Sign in to Supabase with Google ID token
@@ -82,13 +82,13 @@ export async function signInWithGoogle(): Promise<GoogleOAuthResult> {
     }
 
     if (!data.user) {
-      throw new Error('No user data received from Supabase');
+      throw new Error('Erreur lors de la connexion avec Google');
     }
 
     // Ensure user has PARENT role - create if doesn't exist
     const roleResult = await ensureUserHasParentRole(data.user.id, data.user.email || '');
     if (!roleResult.success) {
-      throw new Error(roleResult.error || 'Failed to ensure PARENT role');
+      throw new Error(roleResult.error || 'Oups, vous n\'avez pas de compte parent');
     }
 
     return {
@@ -114,7 +114,7 @@ export async function signUpWithGoogle(): Promise<GoogleOAuthResult> {
     const userInfo = await GoogleSignin.signIn();
     
     if (!userInfo.data?.idToken) {
-      throw new Error('No ID token received from Google');
+      throw new Error('Erreur lors de la connexion avec Google');
     }
 
     // Sign up to Supabase with Google ID token
@@ -128,13 +128,13 @@ export async function signUpWithGoogle(): Promise<GoogleOAuthResult> {
     }
 
     if (!data.user) {
-      throw new Error('No user data received from Supabase');
+      throw new Error('Erreur lors de la connexion avec Google');
     }
 
     // Ensure user has PARENT role - create if doesn't exist
     const roleResult = await ensureUserHasParentRole(data.user.id, data.user.email || '');
     if (!roleResult.success) {
-      throw new Error(roleResult.error || 'Failed to ensure PARENT role');
+      throw new Error(roleResult.error || 'Oups, vous n\'avez pas de compte parent');
     }
 
     // Check if this is a new user (created less than 1 minute ago)
@@ -193,7 +193,7 @@ export async function createUserFromGoogleProfile(
 
     if (profileError) {
       console.error('Error creating user profile:', profileError);
-      throw new Error('Failed to create user profile');
+      throw new Error('Impossible de créer votre profil utilisateur');
     }
 
     // Assign default PARENT role (from your web implementation)
@@ -205,7 +205,7 @@ export async function createUserFromGoogleProfile(
 
     if (roleError) {
       console.error('Error assigning user role:', roleError);
-      throw new Error('Failed to assign user role');
+      throw new Error('Oups, une erreur !! Veillez réessayer');
     }
 
     return { success: true };
@@ -235,7 +235,7 @@ export async function ensureUserHasParentRole(
     if (roleCheckError && roleCheckError.code !== 'PGRST116') {
       // PGRST116 = no rows returned, which is expected for new users
       console.error('Error checking user role:', roleCheckError);
-      throw new Error('Failed to check user role');
+      throw new Error('Oups, nous n\'avons pas pu nous assurer que ce compte est un compte parent');
     }
 
     // If user already has PARENT role, we're done
@@ -252,7 +252,7 @@ export async function ensureUserHasParentRole(
 
     if (userCheckError && userCheckError.code !== 'PGRST116') {
       console.error('Error checking user profile:', userCheckError);
-      throw new Error('Failed to check user profile');
+      throw new Error('Impossible de vérifier votre profil utilisateur');
     }
 
     // Create user profile if it doesn't exist
@@ -266,7 +266,7 @@ export async function ensureUserHasParentRole(
 
       if (profileError) {
         console.error('Error creating user profile:', profileError);
-        throw new Error('Failed to create user profile');
+        throw new Error('Impossible de créer votre profil utilisateur');
       }
     }
 
@@ -278,7 +278,7 @@ export async function ensureUserHasParentRole(
 
     if (roleError) {
       console.error('Error assigning PARENT role:', roleError);
-      throw new Error('Failed to assign PARENT role');
+      throw new Error('Oups, une erreur !! Veillez réessayer');
     }
 
     return { success: true };
@@ -299,7 +299,7 @@ function handleGoogleSignInError(error: any): GoogleOAuthResult {
         errorMessage = 'Une connexion est déjà en cours';
         break;
       case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-        errorMessage = 'Google Play Services n\'est pas disponible ou est obsolète';
+        errorMessage = 'Oups, une erreur !! Veillez réessayer';
         break;
       default:
         console.error('Unknown Google Sign-In error:', error);

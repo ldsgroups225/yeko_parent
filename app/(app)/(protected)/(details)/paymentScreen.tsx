@@ -76,12 +76,12 @@ const PaymentScreen: React.FC = () => {
         setSelectedInstallment(null);
       } else {
         setPaymentError(result.error || "Échec de l'initiation du paiement.");
-        showToast(result.error || "Échec du paiement", ToastColorEnum.Error);
+        showToast(result.error || "Échec du paiement", ToastColorEnum.Error, 7000);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Une erreur inconnue est survenue.";
       setPaymentError(message);
-      showToast(message, ToastColorEnum.Error);
+      showToast(message, ToastColorEnum.Error, 7000);
     } finally {
       setProcessingPayment(false);
     }

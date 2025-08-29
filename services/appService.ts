@@ -271,4 +271,30 @@ export const auth = {
       return 0;
     }
   },
+
+  /**
+   * Updates user profile information.
+   * @param {string} userId - The user ID
+   * @param {object} profileData - The profile data to update
+   * @returns {Promise<void>}
+   */
+  async updateUserProfile(userId: string, profileData: { firstName: string; lastName: string; phone: string }): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from(USERS_TABLE_ID)
+        .update({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          phone: profileData.phone
+        })
+        .eq('id', userId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
+  },
 };

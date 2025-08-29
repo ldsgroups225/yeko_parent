@@ -12,6 +12,13 @@ export default function AppLayout() {
 			<Stack.Screen name="signUp" />
 			<Stack.Screen name="confirmEmailNotice" />
 			<Stack.Screen name="(protected)/completeProfile" />
+			<Stack.Screen 
+				name="(protected)/editProfile" 
+				options={{ 
+					presentation: 'modal',
+					headerShown: false 
+				}} 
+			/>
 			{/* <Stack.Screen name="welcome" /> */}
 		</Stack>
 	);
