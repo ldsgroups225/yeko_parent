@@ -1,6 +1,5 @@
 // lib/supabase/types.ts
 
-
 export type Json =
   | string
   | number
@@ -10,7 +9,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.1 (d3f7cba)"
@@ -25,10 +24,11 @@ export type Database = {
           created_date: string | null
           ends_at: string
           id: string
+          image_url: string | null
           is_excused: boolean
           reason: string | null
-          school_years_id: number | null
-          semesters_id: number | null
+          school_years_id: number
+          semesters_id: number
           starts_at: string
           status: string
           student_id: string
@@ -43,10 +43,11 @@ export type Database = {
           created_date?: string | null
           ends_at: string
           id?: string
+          image_url?: string | null
           is_excused?: boolean
           reason?: string | null
-          school_years_id?: number | null
-          semesters_id?: number | null
+          school_years_id: number
+          semesters_id: number
           starts_at: string
           status: string
           student_id: string
@@ -61,10 +62,11 @@ export type Database = {
           created_date?: string | null
           ends_at?: string
           id?: string
+          image_url?: string | null
           is_excused?: boolean
           reason?: string | null
-          school_years_id?: number | null
-          semesters_id?: number | null
+          school_years_id?: number
+          semesters_id?: number
           starts_at?: string
           status?: string
           student_id?: string
@@ -86,6 +88,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendances_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
           },
           {
             foreignKeyName: "attendances_school_years_foreign"
@@ -141,6 +150,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "attendances_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
             referencedColumns: ["student_id"]
           },
           {
@@ -264,6 +280,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "chats_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "chats_initiated_by_fkey"
             columns: ["initiated_by"]
             isOneToOne: false
@@ -296,6 +319,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "chats_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
             referencedColumns: ["student_id"]
           },
           {
@@ -453,6 +483,305 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conduct_categories: {
+        Row: {
+          color: string
+          created_at: string | null
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          max_points: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string
+          id: string
+          is_active?: boolean
+          max_points: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          max_points?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      conduct_incidents: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          description: string
+          id: string
+          is_active: boolean
+          points_deducted: number
+          reported_at: string
+          reported_by: string
+          school_year_id: number
+          semester_id: number
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          description: string
+          id?: string
+          is_active?: boolean
+          points_deducted: number
+          reported_at?: string
+          reported_by: string
+          school_year_id: number
+          semester_id: number
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean
+          points_deducted?: number
+          reported_at?: string
+          reported_by?: string
+          school_year_id?: number
+          semester_id?: number
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_conduct_incidents_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "conduct_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_reporter"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "school_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "payment_details_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_payment_status_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conduct_scores: {
+        Row: {
+          attendance_score: number
+          created_at: string | null
+          discipline_score: number
+          dresscode_score: number
+          grade: string
+          id: string
+          last_updated: string | null
+          morality_score: number
+          school_year_id: number
+          semester_id: number
+          student_id: string
+          total_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          attendance_score?: number
+          created_at?: string | null
+          discipline_score?: number
+          dresscode_score?: number
+          grade: string
+          id?: string
+          last_updated?: string | null
+          morality_score?: number
+          school_year_id: number
+          semester_id: number
+          student_id: string
+          total_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          attendance_score?: number
+          created_at?: string | null
+          discipline_score?: number
+          dresscode_score?: number
+          grade?: string
+          id?: string
+          last_updated?: string | null
+          morality_score?: number
+          school_year_id?: number
+          semester_id?: number
+          student_id?: string
+          total_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "school_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "payment_details_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_payment_status_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -635,6 +964,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "homeworks_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "homeworks_school_years_foreign"
             columns: ["school_years_id"]
             isOneToOne: false
@@ -744,31 +1080,44 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          email: string | null
           expired_at: string
           id: string
           is_used: boolean
           otp: string
           school_id: string
+          use_for: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          email?: string | null
           expired_at?: string
           id?: string
           is_used?: boolean
           otp: string
           school_id: string
+          use_for?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          email?: string | null
           expired_at?: string
           id?: string
           is_used?: boolean
           otp?: string
           school_id?: string
+          use_for?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "invite_to_school_email_fkey"
+            columns: ["email"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["email"]
+          },
           {
             foreignKeyName: "link_teacher_school_created_by_fkey"
             columns: ["created_by"]
@@ -833,6 +1182,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lpr_class_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
           },
           {
             foreignKeyName: "lpr_config_fkey"
@@ -978,6 +1334,13 @@ export type Database = {
             foreignKeyName: "link_student_parent_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "link_student_parent_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "student_payment_status_view"
             referencedColumns: ["student_id"]
           },
@@ -1089,6 +1452,13 @@ export type Database = {
             foreignKeyName: "note_details_student_id_foreign"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "note_details_student_id_foreign"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "student_payment_status_view"
             referencedColumns: ["student_id"]
           },
@@ -1185,6 +1555,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_class_id_foreign"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
           },
           {
             foreignKeyName: "notes_school_id_foreign"
@@ -1641,7 +2018,74 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "schedules_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "schedules_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_subjects: {
+        Row: {
+          created_at: string
+          id: string
+          school_id: string
+          school_year_id: number
+          subject_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          school_id: string
+          school_year_id: number
+          subject_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          school_id?: string
+          school_year_id?: number
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_subjects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_subjects_school_year_id_fkey"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "school_subjects_school_year_id_fkey"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "school_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_subjects_school_year_id_fkey"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "school_subjects_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
@@ -1949,6 +2393,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_class"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "fk_grade"
             columns: ["grade_id"]
             isOneToOne: false
@@ -2001,6 +2452,13 @@ export type Database = {
             foreignKeyName: "fk_student"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_student"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "student_payment_status_view"
             referencedColumns: ["student_id"]
           },
@@ -2030,6 +2488,8 @@ export type Database = {
           medical_condition: Json | null
           nationality: string
           parent_id: string
+          parent_phone: string | null
+          search_document: unknown | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -2049,6 +2509,8 @@ export type Database = {
           medical_condition?: Json | null
           nationality?: string
           parent_id: string
+          parent_phone?: string | null
+          search_document?: unknown | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -2068,6 +2530,8 @@ export type Database = {
           medical_condition?: Json | null
           nationality?: string
           parent_id?: string
+          parent_phone?: string | null
+          search_document?: unknown | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -2161,6 +2625,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "teacher_class_assignments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "teacher_class_assignments_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
@@ -2234,6 +2705,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "transactions_student_id_foreign"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
             referencedColumns: ["student_id"]
           },
           {
@@ -2421,6 +2899,7 @@ export type Database = {
           month: string | null
           month_numeric: number | null
           school_years_id: number | null
+          semester_id: number | null
           student_id: string | null
         }
         Relationships: [
@@ -2446,6 +2925,27 @@ export type Database = {
             referencedColumns: ["school_year_id"]
           },
           {
+            foreignKeyName: "attendances_semesters_foreign"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "attendances_semesters_foreign"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendances_semesters_foreign"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["semester_id"]
+          },
+          {
             foreignKeyName: "attendances_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
@@ -2457,6 +2957,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "attendances_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
             referencedColumns: ["student_id"]
           },
           {
@@ -2502,6 +3009,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_class"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "fk_student"
             columns: ["student_id"]
             isOneToOne: false
@@ -2513,6 +3027,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
             referencedColumns: ["student_id"]
           },
           {
@@ -2562,6 +3083,73 @@ export type Database = {
           },
         ]
       }
+      conduct_stats_view: {
+        Row: {
+          average_score: number | null
+          blame_count: number | null
+          bonne_count: number | null
+          excellence_count: number | null
+          excellence_rate: number | null
+          mauvaise_count: number | null
+          passable_count: number | null
+          school_id: string | null
+          school_year_id: number | null
+          semester_id: number | null
+          total_students: number | null
+          tres_bonne_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "school_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "fk_school"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_details_view: {
         Row: {
           class_id: string | null
@@ -2593,6 +3181,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_class"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
           },
           {
             foreignKeyName: "fk_school"
@@ -2674,6 +3269,146 @@ export type Database = {
           },
         ]
       }
+      recent_conduct_incidents_view: {
+        Row: {
+          category_color: string | null
+          category_id: string | null
+          category_name: string | null
+          class_name: string | null
+          description: string | null
+          first_name: string | null
+          id: string | null
+          id_number: string | null
+          last_name: string | null
+          points_deducted: number | null
+          reported_at: string | null
+          reporter_first_name: string | null
+          reporter_last_name: string | null
+          student_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_conduct_incidents_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "conduct_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "payment_details_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_payment_status_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_incidents_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_conduct_summary_view: {
+        Row: {
+          absences: number | null
+          attendance_rate: number | null
+          attendance_score: number | null
+          avatar_url: string | null
+          class_id: string | null
+          class_name: string | null
+          discipline_score: number | null
+          dresscode_score: number | null
+          first_name: string | null
+          grade: string | null
+          id_number: string | null
+          incident_count: number | null
+          last_name: string | null
+          last_updated: string | null
+          lates: number | null
+          morality_score: number | null
+          recent_incidents: number | null
+          school_id: string | null
+          school_year_id: number | null
+          semester_id: number | null
+          student_id: string | null
+          total_score: number | null
+          total_sessions: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "school_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_school_year"
+            columns: ["school_year_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["school_year_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "average_grades_view_with_rank"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conduct_scores_semester"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "student_semester_average_view"
+            referencedColumns: ["semester_id"]
+          },
+        ]
+      }
       student_enrollment_view: {
         Row: {
           class_id: string | null
@@ -2704,6 +3439,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_class"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
           },
           {
             foreignKeyName: "fk_school"
@@ -2745,6 +3487,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
             referencedColumns: ["student_id"]
           },
           {
@@ -2837,6 +3586,13 @@ export type Database = {
             foreignKeyName: "fk_student"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_student"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "student_payment_status_view"
             referencedColumns: ["student_id"]
           },
@@ -2863,6 +3619,7 @@ export type Database = {
           remaining_amount: number | null
           school_id: string | null
           school_year_id: number | null
+          search_document: unknown | null
           student_id: string | null
         }
         Relationships: [
@@ -2931,6 +3688,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_class"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "fk_student"
             columns: ["student_id"]
             isOneToOne: false
@@ -2942,6 +3706,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "payment_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fk_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_conduct_summary_view"
             referencedColumns: ["student_id"]
           },
           {
@@ -2968,19 +3739,27 @@ export type Database = {
       }
       calculate_tuition_fees: {
         Args: {
+          p_additional_params?: Json
           p_grade_id: number
-          p_school_id: string
           p_is_government_affected: boolean
           p_is_orphan: boolean
-          p_is_subscribed_to_transportation: boolean
           p_is_subscribed_to_canteen: boolean
-          p_additional_params?: Json
+          p_is_subscribed_to_transportation: boolean
+          p_school_id: string
         }
         Returns: number
       }
       create_attendance_and_participator_and_homework: {
-        Args: { attendances: Json; participators: Json; homework?: Json }
+        Args: { attendances: Json; homework?: Json; participators: Json }
         Returns: string
+      }
+      distribute_extra_fee: {
+        Args: {
+          p_amount: number
+          p_multiplier: number
+          p_number_of_installment: number
+        }
+        Returns: Database["public"]["CompositeTypes"]["distribute_installment_extra_fee_result"][]
       }
       generate_invite_teacher_otp: {
         Args: { p_school_id: string }
@@ -2992,23 +3771,23 @@ export type Database = {
       }
       get_class_metrics: {
         Args: {
-          p_school_id: string
           p_class_id: string
+          p_school_id: string
           p_school_year_id?: number
           p_semester_id?: number
         }
         Returns: {
-          total_students: number
-          late_rate: number
           absent_rate: number
           average_grade: number
+          late_rate: number
+          total_students: number
         }[]
       }
       get_classes_by_school: {
         Args: { school_id: string }
         Returns: {
-          grade_name: string
           count: number
+          grade_name: string
           subclasses: Json[]
         }[]
       }
@@ -3019,8 +3798,8 @@ export type Database = {
       get_last_five_inactive_schools: {
         Args: Record<PropertyKey, never>
         Returns: {
-          name: string
           email: string
+          name: string
           phone: string
         }[]
       }
@@ -3030,38 +3809,38 @@ export type Database = {
       }
       get_monthly_attendance_summary: {
         Args: {
-          start_date?: string
           end_date?: string
           grouping_level?: string
           sort_col?: string
+          start_date?: string
         }
         Returns: {
-          month_label: string
           attendance_count: number
+          month_label: string
         }[]
       }
       get_statistics: {
-        Args: { start_date?: string; end_date?: string }
+        Args: { end_date?: string; start_date?: string }
         Returns: {
-          school_count: number
-          student_count: number
           new_account_count: number
           reconnection_rate: number
+          school_count: number
+          student_count: number
         }[]
       }
       get_student_info: {
         Args: { parent_user_id: string }
         Returns: {
-          student_id: string
-          first_name: string
-          last_name: string
-          id_number: string
           avatar_url: string
           class_id: string
           class_name: string
+          first_name: string
+          id_number: string
+          last_name: string
           school_id: string
-          school_name: string
           school_image_url: string
+          school_name: string
+          student_id: string
         }[]
       }
       get_student_main_teacher: {
@@ -3073,10 +3852,10 @@ export type Database = {
         Returns: Json
       }
       get_unique_notes_by_date: {
-        Args: { p_subject_id: string; p_class_id: string }
+        Args: { p_class_id: string; p_subject_id: string }
         Returns: {
-          id: string
           date: string
+          id: string
           is_published: boolean
           publish_date: string
         }[]
@@ -3087,13 +3866,13 @@ export type Database = {
       }
       process_payment: {
         Args:
-          | { _student_id: string; _amount: number; _payment_method: string }
           | {
-              _student_id: string
-              _school_id: string
               _amount: number
               _payment_method: string
+              _school_id: string
+              _student_id: string
             }
+          | { _amount: number; _payment_method: string; _student_id: string }
         Returns: Json
       }
       refresh_average_grades_view: {
@@ -3108,6 +3887,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      toggle_student_service: {
+        Args: {
+          p_enrollment_id: string
+          p_is_subscribing: boolean
+          p_service_type: string
+        }
+        Returns: string
+      }
       update_existing_class_slugs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3115,14 +3902,22 @@ export type Database = {
       update_lesson_progress: {
         Args: {
           p_class_id: string
-          p_subject_id: string
-          p_sessions_to_add: number
           p_is_force_completed: boolean
+          p_sessions_to_add: number
+          p_subject_id: string
         }
         Returns: Json
       }
       update_published_notes: {
         Args: { p_date: string }
+        Returns: undefined
+      }
+      update_student_conduct_scores: {
+        Args: {
+          p_school_year_id: number
+          p_semester_id: number
+          p_student_id: string
+        }
         Returns: undefined
       }
     }
@@ -3131,7 +3926,9 @@ export type Database = {
       status_enum: "pending" | "accepted" | "rejected"
     }
     CompositeTypes: {
-      [_ in never]: never
+      distribute_installment_extra_fee_result: {
+        amount: number | null
+      }
     }
   }
 }

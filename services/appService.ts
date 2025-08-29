@@ -200,4 +200,75 @@ export const auth = {
     const { error } = await supabase.auth.resend({ type: 'signup', email: userData.user.email });
     if (error) throw new Error(error.message);
   },
+
+  /**
+   * Links a parent to students based on phone number matching.
+   * Updates students with matching parent_phone to set parent_id.
+   * @param {string} parentId - The parent user ID
+   * @param {string} phone - The parent's phone number
+   * @returns {Promise<number>} - Number of students linked
+   */
+  async linkParentToStudentsByPhone(parentId: string, phone: string): Promise<number> {
+    try {
+      // Find students with matching parent_phone and no parent assigned
+      const { data: students, error: fetchError } = await supabase
+        .from('students')
+        .select('id')
+        .ilike('parent_phone', phone)
+        // .is('parent_id', null);
+
+      if (fetchError) {
+        console.error('Error fetching students by phone:', fetchError);
+        return 0;
+      }
+
+      if (!students || students.length === 0) {
+        return 0;
+      }
+
+      // Update matching students with parent_id
+      const studentIds = students.map(student => student.id);
+      const { error: updateError } = await supabase
+        .from('students')
+        .update({ parent_id: parentId })
+        .in('id', studentIds);
+
+      if (updateError) {
+        console.error('Error updating students parent_id:', updateError);
+        return 0;
+      }
+
+      // Check and update parent_phone format to include +225 prefix if missing
+      const { data: studentsWithPhone, error: phoneCheckError } = await supabase
+        .from('students')
+        .select('id, parent_phone')
+        .in('id', studentIds)
+        .not('parent_phone', 'ilike', '+225%');
+
+      if (!phoneCheckError && studentsWithPhone && studentsWithPhone.length > 0) {
+        // Update students whose parent_phone doesn't start with +225
+        const phoneUpdates = studentsWithPhone.map(student => ({
+          id: student.id,
+          parent_phone: `+225${student.parent_phone}`
+        }));
+
+        // Update each student's parent_phone individually
+        for (const update of phoneUpdates) {
+          const { error: phoneUpdateError } = await supabase
+            .from('students')
+            .update({ parent_phone: update.parent_phone })
+            .eq('id', update.id);
+
+          if (phoneUpdateError) {
+            console.error(`Error updating parent_phone for student ${update.id}:`, phoneUpdateError);
+          }
+        }
+      }
+
+      return students.length;
+    } catch (error) {
+      console.error('Error linking parent to students:', error);
+      return 0;
+    }
+  },
 };

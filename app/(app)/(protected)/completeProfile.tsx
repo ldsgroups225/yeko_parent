@@ -21,6 +21,7 @@ import { setUser } from "@/store/appSlice";
 import { auth } from "@/services/appService";
 import { ToastColorEnum } from "@/components/ToastMessage/ToastColorEnum";
 import { formatFullName } from "@/utils/formatting";
+import { normalizeCIPhoneNumber } from "@/utils/phoneUtils";
 import { z } from "zod";
 
 // Assume you have a hook or context to get the authenticated user
@@ -49,7 +50,17 @@ export default function CompleteProfileScreen() {
     if (!user) return;
     setLoading(true);
     try {
+      // Complete user profile
       await auth.completeUserProfile(user.id, user.email, data.first_name, data.last_name, data.phone);
+      
+      // Normalize phone number for Côte d'Ivoire format
+      const normalizedPhone = normalizeCIPhoneNumber(data.phone);
+      
+      // Link parent to students by phone number (only if phone is valid)
+      const linkedStudentsCount = normalizedPhone 
+        ? await auth.linkParentToStudentsByPhone(user.id, normalizedPhone)
+        : 0;
+      
       const newUser = {
         id: user.id,
         firstName: data.first_name,
@@ -57,10 +68,17 @@ export default function CompleteProfileScreen() {
         phone: data.phone,
         email: user.email,
         pushToken: '',
-        children: [],
+        children: [], // Will be populated later
       };
+      
       dispatch(setUser(newUser));
-      showToast(`Bienvenue ! ${formatFullName(data.first_name, data.last_name)}`);
+      
+      // Show appropriate success message
+      const welcomeMessage = linkedStudentsCount > 0 
+        ? `Bienvenue ! ${formatFullName(data.first_name, data.last_name)} - ${linkedStudentsCount} enfant(s) lié(s) automatiquement`
+        : `Bienvenue ! ${formatFullName(data.first_name, data.last_name)}`;
+        
+      showToast(welcomeMessage);
       router.replace("/(app)/(protected)/(tabs)");
     } catch (error) {
       showToast((error as Error).message, ToastColorEnum.Error, 7000);
