@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
 
 // Components
-import { CsButton, CsText, CsTextField } from "@/components";
+import { CsButton, CsText, CsTextField, CsGoogleSignInButton } from "@/components";
 
 // Helpers
 import { showToast } from "@/helpers/toast/showToast";
@@ -174,7 +174,7 @@ export default function SignInScreen() {
             loading={loading}
           />
 
-          {/* <View style={themedStyles.divider}>
+          <View style={themedStyles.divider}>
             <View style={themedStyles.dividerLine} />
             <CsText variant="caption" style={themedStyles.dividerText}>
               Ou
@@ -182,15 +182,14 @@ export default function SignInScreen() {
             <View style={themedStyles.dividerLine} />
           </View>
 
-          <CsButton
-            title="Connexion avec Google"
-            onPress={() => showToast("Fonctionnalité non implémentée.")}
-            variant="secondary"
-            icon={
-              <Ionicons name="logo-google" size={24} color={theme.primary} />
-            }
+          <CsGoogleSignInButton
+            mode="signin"
             style={themedStyles.button}
-          /> */}
+            onAuthAttempt={(success) => {
+              // Google OAuth handling is managed by the button component
+              // Navigation will be handled by the hook automatically
+            }}
+          />
         </Animated.View>
 
         <Animated.View

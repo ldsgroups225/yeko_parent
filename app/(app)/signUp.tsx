@@ -6,10 +6,11 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  View,
 } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { CsButton, CsText, CsTextField } from "@/components";
+import { CsButton, CsText, CsTextField, CsGoogleSignInButton } from "@/components";
 import { useTheme, useThemedStyles } from "@/hooks";
 import { spacing, wp, type ITheme } from "@/styles";
 import { parentSignUpSchema, ParentSignUpFormValues } from "@/utils/validators";
@@ -161,6 +162,27 @@ export default function SignUpScreen() {
           style={themedStyles.button}
           loading={loading}
         />
+
+        <Animated.View entering={FadeInUp.delay(600).duration(1000).springify()}>
+          <View style={themedStyles.divider}>
+            <View style={themedStyles.dividerLine} />
+            <CsText variant="caption" style={themedStyles.dividerText}>
+              Ou
+            </CsText>
+            <View style={themedStyles.dividerLine} />
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(650).duration(1000).springify()}>
+          <CsGoogleSignInButton
+            mode="signup"
+            style={themedStyles.button}
+            onAuthAttempt={(success) => {
+              // Google OAuth handling is managed by the button component
+              // Navigation will be handled by the hook automatically
+            }}
+          />
+        </Animated.View>
 
         {/* <View style={themedStyles.divider}>
           <View style={themedStyles.dividerLine} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CsButton, CsText, CsTextField } from "@/components";
 import { useTheme, useThemedStyles } from "@/hooks";
 import { spacing, wp, type ITheme } from "@/styles";
-import { ParentSignUpFormValues, completeProfileSchema, CompleteProfileFormValues } from "@/utils/validators";
+import { completeProfileSchema, CompleteProfileFormValues } from "@/utils/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { showToast } from "@/helpers/toast/showToast";

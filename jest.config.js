@@ -2,7 +2,7 @@ module.exports = {
   verbose: true,
   preset: "jest-expo",
   transformIgnorePatterns: [
-    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|react-redux|native-base|react-native-svg)",
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|@react-native-google-signin/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|react-redux|native-base|react-native-svg)",
   ],
   collectCoverage: true,
   collectCoverageFrom: [

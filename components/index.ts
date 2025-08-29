@@ -1,6 +1,7 @@
 import CsButton from "./CsButton";
 import CsCard from "./CsCard";
 import { CsDivider } from "./CsDivider";
+import CsGoogleSignInButton from "./CsGoogleSignInButton";
 import CsListTile from "./CsListTile";
 import CsText from "./CsText";
 import CsPicker from "./CsPicker";
@@ -20,6 +21,7 @@ export {
   CsButton,
   CsCard,
   CsDivider,
+  CsGoogleSignInButton,
   CsListTile,
   CsText,
   CsPicker,

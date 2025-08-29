@@ -45,6 +45,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         resizeMode: "contain",
         backgroundColor: "#ffffff",
       }
+    ],
+    [
+      "@react-native-google-signin/google-signin",
+      {
+        iosUrlScheme: process.env.EXPO_PUBLIC_IOS_CLIENT_ID
+      }
     ]
   ],
   experiments: {
