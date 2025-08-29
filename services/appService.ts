@@ -180,7 +180,7 @@ export const auth = {
         email: email,
         first_name: firstName,
         last_name: lastName,
-        phone: phone || null,
+        phone: phone ? '+225' + phone : null,
       });
 
       if (newProfileError) {
@@ -285,7 +285,7 @@ export const auth = {
         .update({
           first_name: profileData.firstName,
           last_name: profileData.lastName,
-          phone: profileData.phone
+          phone: '+225' + profileData.phone
         })
         .eq('id', userId);
 

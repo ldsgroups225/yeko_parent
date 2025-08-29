@@ -50,17 +50,22 @@ export default function CompleteProfileScreen() {
     if (!user) return;
     setLoading(true);
     try {
-      // Complete user profile
-      await auth.completeUserProfile(user.id, user.email, data.first_name, data.last_name, data.phone);
-      
       // Normalize phone number for Côte d'Ivoire format
       const normalizedPhone = normalizeCIPhoneNumber(data.phone);
-      
+
+      if (!normalizedPhone) {
+        throw new Error('Ce numero n\'est pas un numero ivoirien correct')
+      }
+
+      // Complete user profile
+      await auth.completeUserProfile(user.id, user.email, data.first_name, data.last_name, normalizedPhone);
+
+
       // Link parent to students by phone number (only if phone is valid)
-      const linkedStudentsCount = normalizedPhone 
+      const linkedStudentsCount = normalizedPhone
         ? await auth.linkParentToStudentsByPhone(user.id, normalizedPhone)
         : 0;
-      
+
       const newUser = {
         id: user.id,
         firstName: data.first_name,
@@ -70,14 +75,14 @@ export default function CompleteProfileScreen() {
         pushToken: '',
         children: [], // Will be populated later
       };
-      
+
       dispatch(setUser(newUser));
-      
+
       // Show appropriate success message
-      const welcomeMessage = linkedStudentsCount > 0 
+      const welcomeMessage = linkedStudentsCount > 0
         ? `Bienvenue ! ${formatFullName(data.first_name, data.last_name)} - ${linkedStudentsCount} enfant(s) lié(s) automatiquement`
         : `Bienvenue ! ${formatFullName(data.first_name, data.last_name)}`;
-        
+
       showToast(welcomeMessage);
       router.replace("/(app)/(protected)/(tabs)");
     } catch (error) {
