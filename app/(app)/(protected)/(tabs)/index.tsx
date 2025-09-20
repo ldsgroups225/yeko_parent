@@ -130,13 +130,13 @@ const Home: React.FC = () => {
       label: 'Exercices',
       onPress: () => router.push('/(app)/(protected)/(details)/homeworkScreen')
     },
-    {
-      icon: (
-        <Ionicons name="chatbubbles-outline" size={24} color={theme.primary} />
-      ),
-      label: 'Discussion',
-      onPress: () => router.push('/(app)/(protected)/(details)/discussionScreen')
-    },
+    // {
+    //   icon: (
+    //     <Ionicons name="chatbubbles-outline" size={24} color={theme.primary} />
+    //   ),
+    //   label: 'Discussion',
+    //   onPress: () => router.push('/(app)/(protected)/(details)/discussionScreen')
+    // },
     {
       icon: (
         <Ionicons
@@ -155,13 +155,13 @@ const Home: React.FC = () => {
       label: 'Progression',
       onPress: () => router.push('/(app)/(protected)/(details)/progressionScreen')
     },
-    {
-      icon: (
-        <Ionicons name="information-circle-outline" size={24} color={theme.primary} />
-      ),
-      label: 'Infos scolaire',
-      onPress: () => router.push('/(app)/(protected)/(details)/eventScreen')
-    },
+    // {
+    //   icon: (
+    //     <Ionicons name="information-circle-outline" size={24} color={theme.primary} />
+    //   ),
+    //   label: 'Infos scolaire',
+    //   onPress: () => router.push('/(app)/(protected)/(details)/eventScreen')
+    // },
   ];
 
   return (
